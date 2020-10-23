@@ -1,0 +1,38 @@
+object_type:
+  name: photo
+  storage: mysql
+  deletion: directly
+  id:
+    field: photo_id
+    type: integer
+  edge_types:
+    - name: handle
+      to: photo_blob
+      deletion: deep
+    - name: created_by
+      to: user
+      deletion: shallow
+      inverse: created_photo
+
+---
+object_type:
+  id:
+    field: id
+    type: blob
+  name: photo_blob
+  storage: blob
+  deletion: by_any
+  edge_types: []
+
+---
+object_type:
+  name: user
+  storage: mysql
+  deletion: directly_only
+  id:
+    field: user_id
+    type: int
+  edge_types:
+    - name: created_photo
+      to: photo
+      deletion: deep
