@@ -17,7 +17,7 @@ pub fn read_yaml(str: &str) -> graph::DelfGraph {
     // schema.validate(&context, &doc).unwrap();
     // println!("validated the yaml");
 
-    let delf_graph = graph::from_yaml(&parsed);
+    let delf_graph = graph::DelfGraph::from(&parsed);
 
     delf_graph.print();
 
