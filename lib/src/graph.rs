@@ -69,9 +69,16 @@ impl From<&Yaml> for DelfObject {
 }
 
 #[derive(Clone, Debug)]
+pub struct ToType {
+    object_type: String,
+    field: String,
+    mapping_table: Option<String>
+}
+
+#[derive(Clone, Debug)]
 pub struct DelfEdge {
     name: String,
-    to: String,
+    to: ToType,
     deletion: EdgeDeleteType,
     inverse: Option<EdgeIndex>
     // TODO: inverse edges
@@ -81,7 +88,7 @@ impl From<&Yaml> for DelfEdge {
     fn from(obj: &Yaml) -> DelfEdge {
         DelfEdge {
             name: String::from(obj["name"].as_str().unwrap()),
-            to: String::from(obj["to"].as_str().unwrap()),
+            to: String::from(obj["to"].as_str().unwrap()), // TODO: update to ToType
             deletion: EdgeDeleteType::from(obj["deletion"].as_str().unwrap()),
             inverse: None // gets updated later if needed
         }
@@ -161,20 +168,25 @@ impl DelfGraph {
         match edge.deletion {
             EdgeDeleteType::Deep => {
                 println!("    deep deletion, following to {}", edge.to);
-                self.delete_object(&edge.to, Some(edge));
+                self._delete_object(&edge.to, Some(edge));
             },
-            _ => println!("    shallow deletion, not deleting object")
+            _ => println!("    shallow deletion, not deleting object") // TODO: refcount
         }
 
         match edge.inverse {
-            Some(edge_id) => println!("    need to delete a reverse edge too!"),
+            Some(_) => println!("    need to delete a reverse edge too!"),
             _ => ()
         }
     }
 
-    pub fn delete_object(&self, object_name: &String, from_edge: Option<&DelfEdge>) {
+    pub fn delete_object(&self, object_name: &String) {
+        self._delete_object(object_name, None);
+    }
+
+    fn _delete_object(&self, object_name: &String, from_edge: Option<&DelfEdge>) {
         let object_id = self.nodes.get(object_name).unwrap();
         let object = self.graph.node_weight(*object_id).unwrap();
+
         println!("=======\nthinking about deleting {:#?}", object_name);
         let mut to_delete = false;
         match object.deletion {

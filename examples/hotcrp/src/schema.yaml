@@ -1,0 +1,61 @@
+object_type:
+  name: ContactInfo
+  storage: mysql
+  deletion: directly
+  id: contactId
+  edge_types:
+    - name: lead_contact_id
+      to:
+        object_type: Paper
+        field: leadContactId
+      deletion: shallow
+    - name: shepherd_contact_id
+      to:
+        object_type: Paper
+        field: shepherdContactId
+      deletion: shallow
+    - name: manager_contact_id
+      to:
+        object_type: Paper
+        field: managerContactId
+      deletion: shallow
+    - name: comment_contact_id
+      to:
+        object_type: PaperComment
+        field: contactId
+      deletion: deep
+    - name: conflict_contact_id
+      to:
+        object_type: PaperId
+        field: contactId
+        mapping_table: PaperConflict
+      deletion: shallow
+      inverse: conflict_paper_id
+
+---
+object_type:
+  name: Paper
+  storage: mysql
+  deletion: directly
+  id: paperId
+  edge_types:
+    - name: comment_paper_id
+      to:
+        object_type: PaperComment
+        field: paperId
+      deletion: deep
+    - name: conflict_paper_id
+      to:
+        object_type: ContactInfo
+        field: paperId
+        mapping_table: PaperConflict
+      deletion: shallow
+      inverse: conflict_contact_id
+
+---
+object_type:
+  name: PaperComment
+  storage: mysql
+  deletion: directly
+  id: commentId
+  edge_types: []
