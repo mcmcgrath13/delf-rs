@@ -26,7 +26,6 @@ The primary interaction point of delf-rs is a rest API with `DELETE` routes that
 > - [ ] Error handling for invalid ddl yaml
 > - [ ] Validate schema against DB
 > - [ ] Static Analysis (stretch goal)
-> - [ ] Add validation functions to cli
 > - [ ] Tests
 > - [ ] Documentation
 
