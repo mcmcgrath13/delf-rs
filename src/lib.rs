@@ -3,6 +3,7 @@
 // use std::convert::TryFrom;
 
 pub mod graph;
+pub mod storage;
 
 use yaml_rust::{YamlLoader};
 // use yaml_validator::{Context, Validate};

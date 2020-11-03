@@ -6,5 +6,5 @@ fn main() {
 
     let graph = delf::read_yaml(&test_schema, &test_config);
 
-    graph.delete_object(&String::from("user"));
+    graph.delete_object(&String::from("user"), 123);
 }
