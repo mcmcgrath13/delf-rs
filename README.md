@@ -44,10 +44,10 @@ Inspired by FaceBook's DDL, this project has created a smaller version of the DD
 
 The deletion graph is the core data structure backing delf. It contains the relationships between entities as well as how they are connected by edges and how they many be deleted.  The same deletion types have been used as in the original DelF.
 
-### Database Connectors
+### Storage Connectors
 
 > **:warning: STATUS: Started**  
-> - [ ] Create trait implementation for DelfDatabase
+> - [ ] Create trait implementation for DelfStorage
 > - [ ] Create plugins for databases:
 >   - [ ] mysql
 >   - [ ] mongo
@@ -74,7 +74,7 @@ A cli is useful for running the validation of the schema as well as the static a
 * Rust
 * Docker
 
-### Database
+### Storage
 
 Docker container with fake data can be found at https://github.com/mcmcgrath13/hotcrp/.
 

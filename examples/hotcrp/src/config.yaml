@@ -1,0 +1,4 @@
+storages:
+  - name: mysql
+    plugin: diesel
+    url: mysql://test_user:example@localhost/hotcrp_testdb

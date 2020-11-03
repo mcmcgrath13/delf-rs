@@ -5,6 +5,8 @@ use petgraph::{Graph, Directed, Outgoing,
 };
 use yaml_rust::{Yaml};
 
+use self::storage::{ DelfStorageConnection, get_connection };
+
 #[derive(Clone, Debug)]
 enum EdgeDeleteType {
     Deep,
@@ -99,11 +101,12 @@ impl From<&Yaml> for DelfEdge {
 pub struct DelfGraph {
     nodes: HashMap<String, NodeIndex>,
     edges: HashMap<String, EdgeIndex>,
-    graph: Graph<DelfObject, DelfEdge, Directed>
+    graph: Graph<DelfObject, DelfEdge, Directed>,
+    storages: HashMap<String, DelfStorageConnection>
 }
 
 impl DelfGraph {
-    pub fn from(yamls: &Vec<Yaml>) -> DelfGraph {
+    pub fn from(schema: &Vec<Yaml>, config: &Vec<Yaml>) -> DelfGraph {
         let mut edges_to_insert = Vec::new();
         let mut nodes = HashMap::<String, NodeIndex>::new();
         let mut edges = HashMap::<String, EdgeIndex>::new();
@@ -112,7 +115,7 @@ impl DelfGraph {
         let mut graph = Graph::<DelfObject, DelfEdge>::new();
 
         // each yaml is an object
-        for yaml in yamls.iter() {
+        for yaml in schema.iter() {
             let obj_name = String::from(yaml["object_type"]["name"].as_str().unwrap());
             let obj_node = DelfObject::from(&yaml["object_type"]);
 
@@ -146,10 +149,22 @@ impl DelfGraph {
             edge.inverse = Some(*inverse_edge_id);
         }
 
+        // create the storage map
+        let mut storages = HashMap::<String, DelfStorageConnection>::new();
+
+        for yaml in config.iter() {
+            for storage in yaml["storages"].as_vec().unwrap().iter() {
+                let storage_name = String::from(&storage["name"].as_str().unwrap());
+                storages.insert(storage_name, get_connection(storage["plugin"].as_str().unwrap(), storage["url"].as_str().unwrap()))
+            }
+        }
+
+
         return DelfGraph {
             nodes,
             edges,
-            graph
+            graph,
+            storages
         }
     }
 
@@ -179,11 +194,11 @@ impl DelfGraph {
         }
     }
 
-    pub fn delete_object(&self, object_name: &String) {
-        self._delete_object(object_name, None);
+    pub fn delete_object(&self, object_name: &String, id: int32) {
+        self._delete_object(object_name, id, None);
     }
 
-    fn _delete_object(&self, object_name: &String, from_edge: Option<&DelfEdge>) {
+    fn _delete_object(&self, object_name: &String, id: int32, from_edge: Option<&DelfEdge>) {
         let object_id = self.nodes.get(object_name).unwrap();
         let object = self.graph.node_weight(*object_id).unwrap();
 
@@ -208,6 +223,8 @@ impl DelfGraph {
 
         if to_delete {
             println!("    actually deleting!");
+            let storage = self.storages.get(object.storage);
+            storage.delete_object(object, id);
             let edges = self.graph.edges_directed(*object_id, Outgoing);
             for edge in edges {
                 self._delete_edge(edge.weight());
