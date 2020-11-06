@@ -26,7 +26,7 @@ object_type:
       deletion: deep
     - name: conflict_contact_id
       to:
-        object_type: PaperId
+        object_type: Paper
         field: contactId
         mapping_table: PaperConflict
       deletion: shallow

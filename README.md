@@ -87,5 +87,5 @@ docker-compose up -d
 To run the rust code on the HotCRP schema, run the command below.
 
 ```
-cargo run hotcrp
+cargo run --example hotcrp
 ```

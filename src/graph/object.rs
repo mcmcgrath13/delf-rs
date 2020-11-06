@@ -34,8 +34,8 @@ pub struct DelfObject {
     pub name: String,
     pub storage: String,
     pub deletion: DeleteType,
-    id_field: String,
-    id_type: String
+    id_field: String
+    // id_type: String
 }
 
 impl From<&Yaml> for DelfObject {
@@ -43,8 +43,8 @@ impl From<&Yaml> for DelfObject {
         DelfObject {
             name: String::from(obj["name"].as_str().unwrap()),
             storage: String::from(obj["storage"].as_str().unwrap()),
-            id_field: String::from(obj["id"]["field"].as_str().unwrap()),
-            id_type: String::from(obj["id"]["type"].as_str().unwrap()),
+            id_field: String::from(obj["id"].as_str().unwrap()),
+            // id_type: String::from(obj["id"]["type"].as_str().unwrap()),
             deletion: DeleteType::from(obj["deletion"].as_str().unwrap())
         }
     }
