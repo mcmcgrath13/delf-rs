@@ -23,7 +23,7 @@ The primary interaction point of delf-rs is a rest API with `DELETE` routes that
 
 > **:warning: STATUS: Partially Complete**  
 > - [x] Read in YAML to Graph
-> - [ ] Error handling for invalid ddl yaml
+> - [ ] Error handling for invalid ddl yaml (currently just panics)
 > - [ ] Validate schema against DB
 > - [ ] Static Analysis (stretch goal)
 > - [ ] Tests
@@ -38,7 +38,7 @@ Inspired by FaceBook's DDL, this project has created a smaller version of the DD
 > - [ ] Implement algorithm for traversing the graph
 >   - [ ] Implement all edge deletion types (2/3 complete)
 >  - [ ] Implement all object deletion types (4/6 complete)
-> - [ ] Adjust algorithm to dispatch deletions to database
+> - [x] Adjust algorithm to dispatch deletions to database
 > - [ ] Tests
 > - [ ] Documentation
 
@@ -47,9 +47,9 @@ The deletion graph is the core data structure backing delf. It contains the rela
 ### Storage Connectors
 
 > **:warning: STATUS: Started**  
-> - [ ] Create trait implementation for DelfStorage
+> - [x] Create trait for DelfStorage
 > - [ ] Create plugins for databases:
->   - [ ] mysql
+>   - [x] mysql (using diesel, hope to be able to easily also support postgres and sqlite)
 >   - [ ] mongo
 >   - [ ] neo4j
 > - [ ] Tests
@@ -67,6 +67,17 @@ delf-rs can connect to a variety of databases and can delete objects/edges acros
 
 A cli is useful for running the validation of the schema as well as the static analysis. These can both be run without the API, but do require the other components of delf-rs.
 
+### Example
+
+> **:warning: STATUS: Mostly complete**  
+> - [x] Dockerize application
+> - [x] Load test data
+> - [ ] Create delf schema (partially complete)
+> - [x] Create delf config (not secure, but working)
+> - [ ] Replace deletion in app with delf (stretch)
+
+HotCRP is open source conference management software. It is being used as an example to run delf-rs on.  The storage used is a mysql database, which has been dockerized to make testing/reproducibility easier for delf-rs.
+
 ## Running the code
 
 ### Prerequisites
@@ -82,7 +93,7 @@ Docker container with fake data can be found at https://github.com/mcmcgrath13/h
 docker-compose up -d
 ```
 
-### API
+### Delf
 
 To run the rust code on the HotCRP schema, run the command below.
 
