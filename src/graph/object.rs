@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use yaml_rust::{Yaml};
+use yaml_rust::Yaml;
 
-use super::edge::{ DelfEdge };
-use crate::storage::{ DelfStorageConnection };
+use super::edge::DelfEdge;
+use crate::storage::DelfStorageConnection;
 
 #[derive(Clone, Debug)]
 pub enum DeleteType {
@@ -12,7 +12,7 @@ pub enum DeleteType {
     Directly,
     DirectlyOnly,
     // ByXOnly(String),
-    NotDeleted
+    NotDeleted,
 }
 
 impl DeleteType {
@@ -24,7 +24,7 @@ impl DeleteType {
             "directly_only" => DeleteType::DirectlyOnly,
             "by_x_only" => DeleteType::ByAny, // TODO: how to get X
             "not_deleted" => DeleteType::NotDeleted,
-            _ => panic!("No Object type")
+            _ => panic!("No Object type"),
         }
     }
 }
@@ -34,8 +34,7 @@ pub struct DelfObject {
     pub name: String,
     pub storage: String,
     pub deletion: DeleteType,
-    id_field: String
-    // id_type: String
+    pub id_field: String, // id_type: String
 }
 
 impl From<&Yaml> for DelfObject {
@@ -45,29 +44,32 @@ impl From<&Yaml> for DelfObject {
             storage: String::from(obj["storage"].as_str().unwrap()),
             id_field: String::from(obj["id"].as_str().unwrap()),
             // id_type: String::from(obj["id"]["type"].as_str().unwrap()),
-            deletion: DeleteType::from(obj["deletion"].as_str().unwrap())
+            deletion: DeleteType::from(obj["deletion"].as_str().unwrap()),
         }
     }
 }
 
 impl DelfObject {
-    pub fn delete(&self, id: i64, from_edge: Option<&DelfEdge>, storages: &HashMap<String, Box<dyn DelfStorageConnection>>) -> bool {
+    pub fn delete(
+        &self,
+        id: i64,
+        from_edge: Option<&DelfEdge>,
+        storages: &HashMap<String, Box<dyn DelfStorageConnection>>,
+    ) -> bool {
         println!("=======\nthinking about deleting {:#?}", self.name);
         let mut to_delete = false;
         match self.deletion {
-            DeleteType::DirectlyOnly => {
-                match from_edge {
-                    Some(_) => println!("    not deleting, can only be deleted directly"),
-                    None => {
-                        println!("    directly_only satisfied");
-                        to_delete = true;
-                    }
+            DeleteType::DirectlyOnly => match from_edge {
+                Some(_) => println!("    not deleting, can only be deleted directly"),
+                None => {
+                    println!("    directly_only satisfied");
+                    to_delete = true;
                 }
             },
             DeleteType::Directly | DeleteType::ShortTTL | DeleteType::ByAny => {
                 println!("    delete away");
                 to_delete = true;
-            },
+            }
             DeleteType::NotDeleted => println!("    can't delete this"),
         }
 
@@ -78,5 +80,13 @@ impl DelfObject {
         }
 
         return to_delete;
+    }
+
+    pub fn table(&self) -> &String {
+        return &self.name;
+    }
+
+    pub fn key(&self) -> &String {
+        return &self.id_field;
     }
 }

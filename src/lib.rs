@@ -5,7 +5,7 @@
 pub mod graph;
 pub mod storage;
 
-use yaml_rust::{YamlLoader};
+use yaml_rust::YamlLoader;
 // use yaml_validator::{Context, Validate};
 
 pub fn read_yaml(schema_str: &str, config_str: &str) -> graph::DelfGraph {
@@ -18,7 +18,6 @@ pub fn read_yaml(schema_str: &str, config_str: &str) -> graph::DelfGraph {
 
     return delf_graph;
 }
-
 
 #[cfg(test)]
 mod tests {
