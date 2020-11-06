@@ -107,10 +107,18 @@ impl DelfEdge {
 
         match &self.inverse {
             Some(inverse) => {
+                let table: &String;
+                match &self.to.mapping_table {
+                    Some(mapping_table) => {
+                        table = &mapping_table;
+                    }
+                    None => {
+                        table = &to_obj.name;
+                    }
+                }
                 println!("    need to delete a reverse edge too!");
                 // collect object ids to delete
-                let to_ids =
-                    s.get_object_ids(from_id, &self.to.field, &to_obj.name, &to_obj.id_field);
+                let to_ids = s.get_object_ids(from_id, &self.to.field, table, &to_obj.id_field);
                 for to_id in to_ids.iter() {
                     graph.delete_edge(&inverse, *to_id, from_id);
                 }

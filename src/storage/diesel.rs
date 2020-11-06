@@ -39,6 +39,10 @@ impl DelfStorageConnection for DieselConnection {
         table: &String,
         id_field: &String,
     ) -> Vec<i64> {
+        println!(
+            "SELECT {} as id_field FROM {} WHERE {} = {}",
+            id_field, table, edge_field, from_id
+        );
         let query = diesel::sql_query(format!(
             "SELECT {} as id_field FROM {} WHERE {} = {}",
             id_field, table, edge_field, from_id
