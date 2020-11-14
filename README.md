@@ -37,7 +37,7 @@ Inspired by FaceBook's DDL, this project has created a smaller version of the DD
 > - [x] Create data structures / enums for deletion types
 > - [ ] Implement algorithm for traversing the graph
 >   - [ ] Implement all edge deletion types (2/3 complete)
->  - [ ] Implement all object deletion types (4/6 complete)
+>   - [ ] Implement all object deletion types (4/6 complete)
 > - [x] Adjust algorithm to dispatch deletions to database
 > - [ ] Tests
 > - [ ] Documentation

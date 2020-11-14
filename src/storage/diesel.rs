@@ -1,5 +1,5 @@
 use diesel;
-use diesel::sql_types::Integer;
+use diesel::sql_types::{BigInt, Integer};
 use diesel::Connection;
 use diesel::QueryableByName;
 use diesel::RunQueryDsl;
@@ -21,6 +21,12 @@ impl std::fmt::Debug for DieselConnection {
 struct ObjectIdResult {
     #[sql_type = "Integer"]
     id_field: i32,
+}
+
+#[derive(QueryableByName)]
+struct ValidationResult {
+    #[sql_type = "BigInt"]
+    count: i64,
 }
 
 impl DelfStorageConnection for DieselConnection {
@@ -77,12 +83,39 @@ impl DelfStorageConnection for DieselConnection {
         println!("deleted object!");
     }
 
-    fn validate_edge(&self, edge: &DelfEdge) {
-        println!("it's an edge!");
+    fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String> {
+        let table: &str;
+        match &edge.to.mapping_table {
+            Some(map_table) => {
+                table = map_table;
+            }
+            None => {
+                table = &edge.to.object_type;
+            }
+        }
+        let res = diesel::sql_query(format!(
+            "SELECT count({}) as count FROM {}",
+            edge.to.field, table
+        ))
+        .load::<ValidationResult>(&self.connection);
+
+        match res {
+            Ok(_) => return Ok(()),
+            Err(_) => return Err(format!("Edge {} doesn't match database schema", edge.name)),
+        }
     }
 
-    fn validate_object(&self, obj: &DelfObject) {
-        println!("it's an object!");
+    fn validate_object(&self, obj: &DelfObject) -> Result<(), String> {
+        let res = diesel::sql_query(format!(
+            "SELECT count({}) as count FROM {}",
+            obj.id_field, obj.name
+        ))
+        .load::<ValidationResult>(&self.connection);
+
+        match res {
+            Ok(_) => return Ok(()),
+            Err(_) => return Err(format!("Object {} doesn't match database schema", obj.name)),
+        }
     }
 }
 

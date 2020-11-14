@@ -89,4 +89,12 @@ impl DelfObject {
     pub fn key(&self) -> &String {
         return &self.id_field;
     }
+
+    pub fn validate(
+        &self,
+        storages: &HashMap<String, Box<dyn DelfStorageConnection>>,
+    ) -> Result<(), String> {
+        let s = &*(storages.get(&self.storage).unwrap());
+        return s.validate_object(self);
+    }
 }

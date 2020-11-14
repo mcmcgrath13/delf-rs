@@ -21,9 +21,9 @@ pub trait DelfStorageConnection: Debug {
 
     fn delete_object(&self, obj: &DelfObject, id: i64);
 
-    fn validate_edge(&self, edge: &DelfEdge);
+    fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String>;
 
-    fn validate_object(&self, obj: &DelfObject);
+    fn validate_object(&self, obj: &DelfObject) -> Result<(), String>;
 }
 
 pub fn get_connection(plugin: &str, url: &str) -> Box<dyn DelfStorageConnection> {

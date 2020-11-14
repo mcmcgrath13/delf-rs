@@ -107,4 +107,18 @@ impl DelfGraph {
             }
         }
     }
+
+    pub fn validate(&self) -> Result<(), String> {
+        for (_, node_id) in self.nodes.iter() {
+            self.graph
+                .node_weight(*node_id)
+                .unwrap()
+                .validate(&self.storages)?;
+        }
+
+        for (_, edge_id) in self.edges.iter() {
+            self.graph.edge_weight(*edge_id).unwrap().validate(self)?;
+        }
+        return Ok(());
+    }
 }

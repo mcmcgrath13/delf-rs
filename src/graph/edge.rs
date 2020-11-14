@@ -128,4 +128,11 @@ impl DelfEdge {
 
         s.delete_edge(to_obj, from_id, None, self);
     }
+
+    pub fn validate(&self, graph: &DelfGraph) -> Result<(), String> {
+        let to_obj = graph.get_object(&self.to.object_type);
+        let s = &*(graph.storages.get(&to_obj.storage).unwrap());
+        let res = s.validate_edge(self);
+        return res;
+    }
 }
