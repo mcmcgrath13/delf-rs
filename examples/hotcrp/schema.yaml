@@ -1,7 +1,7 @@
 object_type:
   name: ContactInfo
   storage: mysql
-  deletion: directly
+  deletion: directly_only
   id: contactId
   edge_types:
     - name: lead_contact_id
@@ -31,6 +31,49 @@ object_type:
         mapping_table: PaperConflict
       deletion: shallow
       inverse: conflict_paper_id
+    - name: review_contact_id
+      to:
+        object_type: PaperReview
+        field: contactId
+      deletion: deep
+    - name: review_rating_contact_id
+      to:
+        object_type: ReviewRating
+        field: contactId
+      deletion: deep
+    - name: interest_contact_id
+      to:
+        object_type: TopicArea
+        field: contactId
+        mapping_table: TopicInterest
+      deltion: shallow
+      inverse: interest_topic_id
+    - name: paper_watch_contact_id
+      to:
+        object_type: Paper
+        field: contactId
+        mapping_table: PaperWatch
+      deltion: shallow
+      inverse: paper_watch_paper_id
+    - name: capability_contact_id
+      to:
+        object_type: Capability
+        field: contactId
+      deletion: deep
+    - name: review_refused_contact_id
+      to:
+        object_type: Paper
+        field: contactId
+        mapping_table: PaperReviewRefused
+      deltion: shallow
+      inverse: review_refused_paper_id
+    - name: review_preference_contact_id
+      to:
+        object_type: Paper
+        field: contactId
+        mapping_table: PaperReviewPreference
+      deltion: shallow
+      inverse: review_preference_paper_id
 
 ---
 object_type:
@@ -51,6 +94,78 @@ object_type:
         mapping_table: PaperConflict
       deletion: shallow
       inverse: conflict_contact_id
+    - name: storage_paper_id
+      to:
+        object_type: PaperStorage
+        field: paperId
+      deletion: deep
+    - name: review_paper_id
+      to:
+        object_type: PaperReview
+        field: paperId
+      deletion: deep
+    - name: review_rating_paper_id
+      to:
+        object_type: ReviewRating
+        field: paperId
+      deletion: deep
+    - name: paper_topic_paper_id
+      to:
+        object_type: TopicArea
+        field: paperId
+        mapping_table: PaperTopic
+      deltion: shallow
+      inverse: paper_topic_topic_id
+    - name: paper_watch_paper_id
+      to:
+        object_type: ContactInfo
+        field: paperId
+        mapping_table: PaperWatch
+      deltion: shallow
+      inverse: paper_watch_contact_id
+    - name: paper_option_paper_id
+      to:
+        object_type: PaperOption
+        field: paperId
+      deletion: deep
+    - name: capability_paper_id
+      to:
+        object_type: Capability
+        field: paperId
+      deletion: deep
+    - name: review_request_paper_id
+      to:
+        object_type: ReviewRequest
+        field: paperId
+      deletion: deep
+    - name: review_refused_paper_id
+      to:
+        object_type: ContactInfo
+        field: paperId
+        mapping_table: PaperReviewRefused
+      deltion: shallow
+      inverse: review_refused_contact_id
+    - name: review_preference_paper_id
+      to:
+        object_type: ContactInfo
+        field: paperId
+        mapping_table: PaperReviewPreference
+      deltion: shallow
+      inverse: review_preference_contact_id
+    - name: document_link_paper_id
+      to:
+        object_type: DocumentLink
+        field: paperId
+      type: deep
+    - name: tag_paper_id
+      to:
+        object_type: PaperTagAnno
+        field: paperId
+        mapping_table: PaperTag
+      deltion: shallow
+      inverse: tag_anno_id
+
+
 
 ---
 object_type:
@@ -59,3 +174,135 @@ object_type:
   deletion: directly
   id: commentId
   edge_types: []
+
+---
+object_type:
+  name: PaperStorage
+  storage: mysql
+  deletion: directly
+  id: PaperStorageId
+  edge_types:
+    - name: document_link_doc_id
+      to:
+        object_type: DocumentLink
+        field: documentId
+      type: deep
+    - name: document_filter_in_doc_id
+      to:
+        object_type: FilteredDocument
+        field: inDocId
+      type: deep
+    - name: document_filter_out_doc_id
+      to:
+        object_type: FilteredDocument
+        field: outDocId
+      type: deep
+---
+object_type:
+  name: PaperReview
+  storage: mysql
+  deletion: directly
+  id: reviewId
+  edge_types:
+    - name: review_rating_review_id
+      to:
+        object_type: ReviewRating
+        field: reviewId
+      deletion: deep
+
+---
+object_type:
+  name: ReviewRating
+  storage: mysql
+  deletion: directly
+  id: reviewId
+  edge_types: []
+
+---
+object_type:
+  name: Formula
+  storage: mysql
+  deletion: directly
+  id: formulaId
+  edge_types: []
+
+---
+object_type:
+  name: TopicArea
+  storage: mysql
+  deletion: directly
+  id: topicId
+  edge_types:
+    - name: interest_topic_id
+      to:
+        object_type: ContactInfo
+        field: topicId
+        mapping_table: TopicInterest
+      deltion: shallow
+      inverse: interest_contact_id
+    - name: paper_topic_id
+      to:
+        object_type: Paper
+        field: topicId
+        mapping_table: PaperTopic
+      deltion: shallow
+      inverse: paper_topic_paper_id
+
+---
+object_type:
+  name: PaperOption
+  storage: mysql
+  deletion: by_x_only
+  x:
+    - paper_option_paper_id
+  id: optionId
+  edge_types: []
+
+---
+object_type:
+  name: Capability
+  storage: mysql
+  deletion: by_any
+  id: salt
+  edge_types: []
+
+---
+object_type:
+  name: ReviewRequest
+  storage: mysql
+  deletion: by_x_only
+  x:
+    - Paper
+  id: paperId
+  edge_types: []
+
+---
+object_type:
+  name: DocumentLink
+  storage: mysql
+  deletion: by_any
+  id: linkId
+  edge_types: []
+
+---
+object_type:
+  name: FilteredDocument
+  storage: mysql
+  deletion: by_any
+  id: inDocId
+  edge_types: []
+
+---
+object_type:
+  name: PaperTagAnno
+  storage: mysql
+  deletion: directly
+  id: tag
+  edge_types:
+    - name: tag_anno_id
+      to:
+        object_type: PaperTagAnno
+        field: tag
+        mapping_table: PaperTag
+      deltion: shallow
+      inverse: tag_paper_id

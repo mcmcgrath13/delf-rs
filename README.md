@@ -11,7 +11,7 @@ This DelF aims to be a lighter weight deletion framework, without the need for F
 
 ### REST API
 
-> **:warning: STATUS: Not Started**  
+> **:warning: STATUS: Not Startede**  
 > - [ ] Set up rockets routes
 > - [ ] Package crate
 > - [ ] Tests
@@ -24,7 +24,7 @@ The primary interaction point of delf-rs is a rest API with `DELETE` routes that
 > **:warning: STATUS: Partially Complete**  
 > - [x] Read in YAML to Graph
 > - [ ] Error handling for invalid ddl yaml (currently just panics)
-> - [ ] Validate schema against DB
+> - [x] Validate schema against DB
 > - [ ] Static Analysis (stretch goal)
 > - [ ] Tests
 > - [ ] Documentation
@@ -59,8 +59,10 @@ delf-rs can connect to a variety of databases and can delete objects/edges acros
 
 ### CLI
 
-> **:warning: STATUS: Not Started**  
+> **:warning: STATUS: Partially complete**  
 > - [ ] Set up cli methods
+>   - [x] Validate
+>   - [ ] Run
 > - [ ] package
 > - [ ] Tests
 > - [ ] Documentation
@@ -72,7 +74,7 @@ A cli is useful for running the validation of the schema as well as the static a
 > **:warning: STATUS: Mostly complete**  
 > - [x] Dockerize application
 > - [x] Load test data
-> - [ ] Create delf schema (partially complete)
+> - [x] Create delf schema (partially complete)
 > - [x] Create delf config (not secure, but working)
 > - [ ] Replace deletion in app with delf (stretch)
 
