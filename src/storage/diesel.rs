@@ -92,14 +92,14 @@ impl DelfStorageConnection for DieselConnection {
         from_id: &String,
         to_id: Option<&String>,
         edge: &DelfEdge,
-    ) {
+    ) -> bool {
         match &edge.to.mapping_table {
             Some(map_table) => self.delete_indirect_edge(edge, to, from_id, to_id, map_table), // delete the id pair from the mapping table
             None => self.delete_direct_edge(to, from_id, edge), // try to set null in object table
         }
     }
 
-    fn delete_object(&self, obj: &DelfObject, id: &String) {
+    fn delete_object(&self, obj: &DelfObject, id: &String) -> bool {
         let mut query_str = format!("DELETE FROM {} WHERE {} = ", obj.name, obj.id_field,);
         match obj.id_type.to_lowercase().as_str() {
             "string" => query_str.push_str(format!("'{}'", id).as_str()),
@@ -107,10 +107,16 @@ impl DelfStorageConnection for DieselConnection {
             _ => panic!("Unrecognized id type"),
         }
 
-        diesel::sql_query(query_str)
+        let num_rows = diesel::sql_query(query_str)
             .execute(&self.connection)
             .unwrap();
-        println!("deleted object!");
+
+        if num_rows == 0 {
+            return false;
+        } else {
+            println!("deleted object!");
+            return true;
+        }
     }
 
     fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String> {
@@ -157,36 +163,46 @@ impl DieselConnection {
         from_id: &String,
         to_id: Option<&String>,
         table: &String,
-    ) {
-        match to_id {
+    ) -> bool {
+        let num_rows = match to_id {
             Some(id) => {
+                // TODO make this not panic on a string id
                 diesel::sql_query(format!(
                     "DELETE FROM {} WHERE {} = {} AND {} = {}",
                     table, to.id_field, id, edge.to.field, from_id
                 ))
                 .execute(&self.connection)
-                .unwrap();
+                .unwrap()
             }
-            None => {
-                diesel::sql_query(format!(
-                    "DELETE FROM {} WHERE {} = {}",
-                    table, edge.to.field, from_id
-                ))
-                .execute(&self.connection)
-                .unwrap();
-            }
-        }
+            None => diesel::sql_query(format!(
+                "DELETE FROM {} WHERE {} = {}",
+                table, edge.to.field, from_id
+            ))
+            .execute(&self.connection)
+            .unwrap(),
+        };
 
-        println!("deleted indirect edge {}!", table);
+        if num_rows == 0 {
+            return false;
+        } else {
+            println!("deleted indirect edge {}!", table);
+            return true;
+        }
     }
 
-    fn delete_direct_edge(&self, to: &DelfObject, from_id: &String, edge: &DelfEdge) {
-        diesel::sql_query(format!(
+    fn delete_direct_edge(&self, to: &DelfObject, from_id: &String, edge: &DelfEdge) -> bool {
+        let num_rows = diesel::sql_query(format!(
             "UPDATE {} SET {} = NULL WHERE {} = {}",
             to.name, edge.to.field, edge.to.field, from_id
         ))
         .execute(&self.connection)
         .unwrap();
-        println!("deleted direct edge!");
+
+        if num_rows == 0 {
+            return false;
+        } else {
+            println!("deleted direct edge!");
+            return true;
+        }
     }
 }

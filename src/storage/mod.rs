@@ -25,9 +25,9 @@ pub trait DelfStorageConnection: Debug {
         from_id: &String,
         to_id: Option<&String>,
         edge: &DelfEdge,
-    );
+    ) -> bool;
 
-    fn delete_object(&self, obj: &DelfObject, id: &String);
+    fn delete_object(&self, obj: &DelfObject, id: &String) -> bool;
 
     fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String>;
 

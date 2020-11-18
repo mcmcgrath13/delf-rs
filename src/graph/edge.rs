@@ -83,15 +83,17 @@ impl DelfEdge {
             _ => println!("    shallow deletion, not deleting object"), // TODO: refcount
         }
 
-        match &self.inverse {
-            Some(inverse) => {
-                println!("    need to delete a reverse edge too!");
-                graph.delete_edge(&inverse, to_id, from_id);
-            }
-            None => (),
-        }
+        let deleted = s.delete_edge(to_obj, from_id, None, self);
 
-        s.delete_edge(to_obj, from_id, None, self);
+        if deleted {
+            match &self.inverse {
+                Some(inverse) => {
+                    println!("    need to delete a reverse edge too!");
+                    graph.delete_edge(&inverse, to_id, from_id);
+                }
+                None => (),
+            }
+        }
     }
 
     /// Delete all edges of a given type from the instance of the object

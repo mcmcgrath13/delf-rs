@@ -8,7 +8,7 @@ fn main() {
 
     graph.validate().unwrap();
 
-    let id = "50".to_string();
+    let id = "48".to_string();
 
     graph.delete_object(&String::from("ContactInfo"), &id);
 }

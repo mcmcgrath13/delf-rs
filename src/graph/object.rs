@@ -100,10 +100,10 @@ impl DelfObject {
         if to_delete {
             println!("    actually deleting!");
             let s = &*(storages.get(&self.storage).unwrap());
-            s.delete_object(self, id);
+            return s.delete_object(self, id);
         }
 
-        return to_delete;
+        return false;
     }
 
     /// Validate the object exists in the storage as described in the schema
