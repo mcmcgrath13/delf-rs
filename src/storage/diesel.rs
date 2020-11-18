@@ -31,6 +31,7 @@ struct ObjectIdStrResult {
 
 #[derive(QueryableByName)]
 struct ValidationResult {
+    #[allow(dead_code)]
     #[sql_type = "BigInt"]
     count: i64,
 }

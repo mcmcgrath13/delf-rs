@@ -2,7 +2,7 @@
 
 A [DelF](https://cs.brown.edu/courses/csci2390/2020/readings/delf.pdf) inspired deletion framework in Rust.
 
-The original DelF is a deletion framework created at FaceBook, which aims to robustly delete all related data from its data stores as defined by the `deletion` definitions added to FaceBook's existing data definition language (DDL). It includes logging, data recovery in case of unintended deletion, asynchronous execution, dynamic analysis, and retries to deletions until complete in addition to the features this implementation includes.
+The original DelF is a deletion framework created at FaceBook, which aims to robustly delete all related data from its data stores as defined by the `deletion` definitions added to FaceBook's existing data definition language (DDL). It includes logging, data recovery in case of unintended deletion, asynchronous execution, dynamic analysis, and retries deletions until complete in addition to the features this implementation includes.
 
 This DelF aims to be a lighter weight deletion framework, without the need for FaceBook's infrastructure stack. The following features are included in the scope of this work.
 
@@ -11,9 +11,9 @@ This DelF aims to be a lighter weight deletion framework, without the need for F
 
 ### REST API
 
-> **:warning: STATUS: Not Startede**  
-> - [ ] Set up rockets routes
-> - [ ] Package crate
+> **:warning: STATUS: Partially Complete**  
+> - [x] Set up rockets routes
+> - [x] Package crate
 > - [ ] Tests
 > - [ ] Documentation
 
@@ -37,7 +37,7 @@ Inspired by FaceBook's DDL, this project has created a smaller version of the DD
 > - [x] Create data structures / enums for deletion types
 > - [ ] Implement algorithm for traversing the graph
 >   - [ ] Implement all edge deletion types (2/3 complete)
->   - [ ] Implement all object deletion types (4/6 complete)
+>   - [ ] Implement all object deletion types (5/6 complete)
 > - [x] Adjust algorithm to dispatch deletions to database
 > - [ ] Tests
 > - [ ] Documentation

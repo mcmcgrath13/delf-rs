@@ -1,31 +1,56 @@
 //! # DeLF
 //! A [DelF](https://cs.brown.edu/courses/csci2390/2020/readings/delf.pdf) inspired deletion framework in Rust.
 
+#![feature(proc_macro_hygiene, decl_macro)]
+
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+/// The api module contains routes to dispatch deletes on objects and edges
+pub mod api;
 /// The graph module contains the core structures to run the deletion algorithms.
 pub mod graph;
 ///The storage module contains plugins for storage-specific (e.g. mysql) deletion implementations.
 pub mod storage;
 
-use yaml_rust::YamlLoader;
+use yaml_rust::{Yaml, YamlLoader};
+extern crate rocket;
+
+pub struct DelfYamls {
+    pub config: Vec<Yaml>,
+    pub schema: Vec<Yaml>,
+}
 
 /// Read in the schema and config yaml files to build the delf graph.
 pub fn read_files(schema_path: &String, config_path: &String) -> graph::DelfGraph {
-    let config_str = read_file(config_path);
-    let schema_str = read_file(schema_path);
+    let yamls = parse_files(schema_path, config_path);
 
-    return read_yamls(&schema_str, &config_str);
+    return graph::DelfGraph::new(&yamls);
+}
+
+fn parse_files(schema_path: &String, config_path: &String) -> DelfYamls {
+    let schema_str = read_file(schema_path);
+    let config_str = read_file(config_path);
+
+    return parse_yaml(&schema_str, &config_str);
+}
+
+fn parse_yaml(schema_str: &str, config_str: &str) -> DelfYamls {
+    let schema_parsed = YamlLoader::load_from_str(schema_str).unwrap();
+    let config_parsed = YamlLoader::load_from_str(config_str).unwrap();
+
+    DelfYamls {
+        config: config_parsed,
+        schema: schema_parsed,
+    }
 }
 
 /// Read in the schema and config yaml strings to build the delf graph.
 pub fn read_yamls(schema_str: &str, config_str: &str) -> graph::DelfGraph {
-    let schema_parsed = YamlLoader::load_from_str(schema_str).unwrap();
-    let config_parsed = YamlLoader::load_from_str(config_str).unwrap();
+    let yamls = parse_yaml(schema_str, config_str);
 
-    return graph::DelfGraph::new(&schema_parsed, &config_parsed);
+    return graph::DelfGraph::new(&yamls);
 }
 
 fn read_file(file_name: &String) -> String {
@@ -45,6 +70,14 @@ fn read_file(file_name: &String) -> String {
     }
 
     return s;
+}
+
+/// Initialize the rocket api and return the struct.  Run the `launch` method on the returned value to start the api.
+pub fn init_api(schema_path: &String, config_path: &String) -> rocket::Rocket {
+    let yamls = parse_files(schema_path, config_path);
+    rocket::ignite()
+        .mount("/", rocket::routes![api::delete_object, api::delete_edge])
+        .manage(yamls)
 }
 
 #[cfg(test)]

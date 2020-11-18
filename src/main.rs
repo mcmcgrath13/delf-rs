@@ -1,6 +1,6 @@
 use clap::Clap;
 
-use delf::read_yaml;
+use delf;
 
 #[derive(Clap)]
 struct Opts {
@@ -30,16 +30,21 @@ fn main() {
     match opts.subcmd {
         SubCommand::Validate => {
             println!("Validating schema...");
-            validate(&opts.config, &opts.schema);
+            validate(&opts.schema, &opts.config);
         }
         SubCommand::Run => {
             println!("Starting delf api...");
+            run(&opts.schema, &opts.config);
         }
     }
 }
 
-fn validate(config_path: &String, schema_path: &String) {
-    let graph = read_files(&schema_str, &config_str);
+fn validate(schema_path: &String, config_path: &String) {
+    let graph = delf::read_files(schema_path, config_path);
     graph.validate().unwrap();
     println!("Validation successful!")
+}
+
+fn run(schema_path: &String, config_path: &String) {
+    delf::init_api(schema_path, config_path).launch();
 }

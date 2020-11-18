@@ -4,7 +4,6 @@ use petgraph::{
     graph::{EdgeIndex, NodeIndex},
     Directed, Graph, Outgoing,
 };
-use yaml_rust::Yaml;
 
 /// The edge of a DelfGraph is a DelfEdge
 pub mod edge;
@@ -12,6 +11,7 @@ pub mod edge;
 pub mod object;
 
 use crate::storage::{get_connection, DelfStorageConnection};
+use crate::DelfYamls;
 
 /// The DelfGraph is the core structure for delf's functionality.  It contains the algorithm to traverse the graph, as well as metadata to perform the deletions.
 #[derive(Debug)]
@@ -24,7 +24,9 @@ pub struct DelfGraph {
 
 impl DelfGraph {
     /// Create a new DelfGraph from a schema and a config.  See [yaml_rust](../../yaml_rust/index.html) for information on creating the Yaml structs, or alternately use the helper functions: [read_files](../fn.read_files.html), [read_yamls](../fn.read_yamls.html) for constructing a DelfGraph from either paths or `&str` of yaml.
-    pub fn new(schema: &Vec<Yaml>, config: &Vec<Yaml>) -> DelfGraph {
+    pub fn new(yamls: &DelfYamls) -> DelfGraph {
+        let schema = &yamls.schema;
+        let config = &yamls.config;
         let mut edges_to_insert = Vec::new();
         let mut nodes = HashMap::<String, NodeIndex>::new();
         let mut edges = HashMap::<String, EdgeIndex>::new();
