@@ -1,7 +1,3 @@
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
 use clap::Clap;
 
 use delf::read_yaml;
@@ -43,29 +39,7 @@ fn main() {
 }
 
 fn validate(config_path: &String, schema_path: &String) {
-    let config_str = read_file(config_path);
-    let schema_str = read_file(schema_path);
-
-    let graph = read_yaml(&schema_str, &config_str);
+    let graph = read_files(&schema_str, &config_str);
     graph.validate().unwrap();
     println!("Validation successful!")
-}
-
-fn read_file(file_name: &String) -> String {
-    let path = Path::new(file_name);
-
-    // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
-        Err(why) => panic!("couldn't open {}: {}", file_name, why),
-        Ok(file) => file,
-    };
-
-    // Read the file contents into a string, returns `io::Result<usize>`
-    let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}: {}", file_name, why),
-        Ok(_) => print!("{} contains:\n{}", file_name, s),
-    }
-
-    return s;
 }

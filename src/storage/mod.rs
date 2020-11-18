@@ -11,15 +11,23 @@ pub trait DelfStorageConnection: Debug {
 
     fn get_object_ids(
         &self,
-        from_id: i64,
+        from_id: &String,
+        from_id_type: &String,
         edge_field: &String,
         table: &String,
         id_field: &String,
-    ) -> Vec<i64>;
+        id_type: &String,
+    ) -> Vec<String>;
 
-    fn delete_edge(&self, to: &DelfObject, from_id: i64, to_id: Option<i64>, edge: &DelfEdge);
+    fn delete_edge(
+        &self,
+        to: &DelfObject,
+        from_id: &String,
+        to_id: Option<&String>,
+        edge: &DelfEdge,
+    );
 
-    fn delete_object(&self, obj: &DelfObject, id: i64);
+    fn delete_object(&self, obj: &DelfObject, id: &String);
 
     fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String>;
 

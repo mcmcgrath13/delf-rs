@@ -2,10 +2,14 @@ use yaml_rust::Yaml;
 
 use crate::graph::DelfGraph;
 
+/// The deletion types for a DelfEdge
 #[derive(Clone, Debug)]
 pub enum DeleteType {
+    /// Delete the edge and object the edge refers to
     Deep,
+    /// Delete the edge, but not the object it refers to
     Shallow,
+    /// Delete the edge and delete the object if this edge is the last edge referring to it
     RefCount,
 }
 
@@ -20,6 +24,7 @@ impl DeleteType {
     }
 }
 
+/// Describes the object from the point of view of the edge
 #[derive(Clone, Debug)]
 pub struct ToType {
     pub object_type: String,
@@ -27,6 +32,7 @@ pub struct ToType {
     pub mapping_table: Option<String>,
 }
 
+/// The DelfEdge contains the information about the edge as described in the schema
 #[derive(Clone, Debug)]
 pub struct DelfEdge {
     pub name: String,
@@ -63,7 +69,8 @@ impl From<&Yaml> for ToType {
 }
 
 impl DelfEdge {
-    pub fn delete_one(&self, from_id: i64, to_id: i64, graph: &DelfGraph) {
+    /// Delete a specific edge between two object instances
+    pub fn delete_one(&self, from_id: &String, to_id: &String, graph: &DelfGraph) {
         println!("=======\ndeleting {:#?}", self.name);
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());
@@ -87,7 +94,8 @@ impl DelfEdge {
         s.delete_edge(to_obj, from_id, None, self);
     }
 
-    pub fn delete_all(&self, from_id: i64, graph: &DelfGraph) {
+    /// Delete all edges of a given type from the instance of the object
+    pub fn delete_all(&self, from_id: &String, from_id_type: &String, graph: &DelfGraph) {
         println!("=======\ndeleting {:#?}", self.name);
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());
@@ -96,10 +104,16 @@ impl DelfEdge {
             DeleteType::Deep => {
                 println!("    deep deletion, following to {}", self.to.object_type);
                 // collect object ids to delete
-                let to_ids =
-                    s.get_object_ids(from_id, &self.to.field, &to_obj.name, &to_obj.id_field);
+                let to_ids = s.get_object_ids(
+                    from_id,
+                    from_id_type,
+                    &self.to.field,
+                    &to_obj.name,
+                    &to_obj.id_field,
+                    &to_obj.id_type,
+                );
                 for to_id in to_ids.iter() {
-                    graph._delete_object(&to_obj.name, *to_id, Some(self));
+                    graph._delete_object(&to_obj.name, to_id, Some(self));
                 }
             }
             _ => println!("    shallow deletion, not deleting object"), // TODO: refcount
@@ -118,9 +132,16 @@ impl DelfEdge {
                 }
                 println!("    need to delete a reverse edge too!");
                 // collect object ids to delete
-                let to_ids = s.get_object_ids(from_id, &self.to.field, table, &to_obj.id_field);
+                let to_ids = s.get_object_ids(
+                    from_id,
+                    from_id_type,
+                    &self.to.field,
+                    table,
+                    &to_obj.id_field,
+                    &to_obj.id_type,
+                );
                 for to_id in to_ids.iter() {
-                    graph.delete_edge(&inverse, *to_id, from_id);
+                    graph.delete_edge(&inverse, to_id, from_id);
                 }
             }
             None => (),
@@ -129,6 +150,7 @@ impl DelfEdge {
         s.delete_edge(to_obj, from_id, None, self);
     }
 
+    /// Validate the edge exists in the storage as described in the schema
     pub fn validate(&self, graph: &DelfGraph) -> Result<(), String> {
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());

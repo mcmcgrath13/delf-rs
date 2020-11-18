@@ -1,5 +1,5 @@
 use diesel;
-use diesel::sql_types::{BigInt, Integer};
+use diesel::sql_types::{BigInt, Integer, Text};
 use diesel::Connection;
 use diesel::QueryableByName;
 use diesel::RunQueryDsl;
@@ -18,9 +18,15 @@ impl std::fmt::Debug for DieselConnection {
 }
 
 #[derive(QueryableByName)]
-struct ObjectIdResult {
+struct ObjectIdIntResult {
     #[sql_type = "Integer"]
     id_field: i32,
+}
+
+#[derive(QueryableByName)]
+struct ObjectIdStrResult {
+    #[sql_type = "Text"]
+    id_field: String,
 }
 
 #[derive(QueryableByName)]
@@ -40,46 +46,70 @@ impl DelfStorageConnection for DieselConnection {
 
     fn get_object_ids(
         &self,
-        from_id: i64,
+        from_id: &String,
+        from_id_type: &String,
         edge_field: &String,
         table: &String,
         id_field: &String,
-    ) -> Vec<i64> {
-        println!(
-            "SELECT {} as id_field FROM {} WHERE {} = {}",
-            id_field, table, edge_field, from_id
+        id_type: &String,
+    ) -> Vec<String> {
+        let mut query_str = format!(
+            "SELECT {} as id_field FROM {} WHERE {} = ",
+            id_field, table, edge_field
         );
-        let query = diesel::sql_query(format!(
-            "SELECT {} as id_field FROM {} WHERE {} = {}",
-            id_field, table, edge_field, from_id
-        ))
-        .load::<ObjectIdResult>(&self.connection);
+        match from_id_type.to_lowercase().as_str() {
+            "string" => query_str.push_str(format!("'{}'", from_id).as_str()),
+            "integer" => query_str.push_str(format!("{}", from_id).as_str()),
+            _ => panic!("Unrecognized id type"),
+        }
+
+        let query = diesel::sql_query(query_str);
 
         let mut obj_ids = Vec::new();
-        let res = query.unwrap();
-        for o_id in res {
-            obj_ids.push(o_id.id_field as i64);
+
+        match id_type.to_lowercase().as_str() {
+            "string" => {
+                let res = query.load::<ObjectIdStrResult>(&self.connection).unwrap();
+                for o_id in res {
+                    obj_ids.push(o_id.id_field)
+                }
+            }
+            "integer" => {
+                let res = query.load::<ObjectIdIntResult>(&self.connection).unwrap();
+                for o_id in res {
+                    obj_ids.push(o_id.id_field.to_string())
+                }
+            }
+            _ => panic!("Unrecognized id type"),
         }
 
         return obj_ids;
     }
 
-    fn delete_edge(&self, to: &DelfObject, from_id: i64, to_id: Option<i64>, edge: &DelfEdge) {
+    fn delete_edge(
+        &self,
+        to: &DelfObject,
+        from_id: &String,
+        to_id: Option<&String>,
+        edge: &DelfEdge,
+    ) {
         match &edge.to.mapping_table {
             Some(map_table) => self.delete_indirect_edge(edge, to, from_id, to_id, map_table), // delete the id pair from the mapping table
             None => self.delete_direct_edge(to, from_id, edge), // try to set null in object table
         }
     }
 
-    fn delete_object(&self, obj: &DelfObject, id: i64) {
-        diesel::sql_query(format!(
-            "DELETE FROM {} WHERE {} = {}",
-            obj.table(),
-            obj.key(),
-            id
-        ))
-        .execute(&self.connection)
-        .unwrap();
+    fn delete_object(&self, obj: &DelfObject, id: &String) {
+        let mut query_str = format!("DELETE FROM {} WHERE {} = ", obj.name, obj.id_field,);
+        match obj.id_type.to_lowercase().as_str() {
+            "string" => query_str.push_str(format!("'{}'", id).as_str()),
+            "integer" => query_str.push_str(format!("{}", id).as_str()),
+            _ => panic!("Unrecognized id type"),
+        }
+
+        diesel::sql_query(query_str)
+            .execute(&self.connection)
+            .unwrap();
         println!("deleted object!");
     }
 
@@ -124,19 +154,15 @@ impl DieselConnection {
         &self,
         edge: &DelfEdge,
         to: &DelfObject,
-        from_id: i64,
-        to_id: Option<i64>,
+        from_id: &String,
+        to_id: Option<&String>,
         table: &String,
     ) {
         match to_id {
             Some(id) => {
                 diesel::sql_query(format!(
                     "DELETE FROM {} WHERE {} = {} AND {} = {}",
-                    table,
-                    to.key(),
-                    id,
-                    edge.to.field,
-                    from_id
+                    table, to.id_field, id, edge.to.field, from_id
                 ))
                 .execute(&self.connection)
                 .unwrap();
@@ -154,13 +180,10 @@ impl DieselConnection {
         println!("deleted indirect edge {}!", table);
     }
 
-    fn delete_direct_edge(&self, to: &DelfObject, from_id: i64, edge: &DelfEdge) {
+    fn delete_direct_edge(&self, to: &DelfObject, from_id: &String, edge: &DelfEdge) {
         diesel::sql_query(format!(
             "UPDATE {} SET {} = NULL WHERE {} = {}",
-            to.table(),
-            edge.to.field,
-            edge.to.field,
-            from_id
+            to.name, edge.to.field, edge.to.field, from_id
         ))
         .execute(&self.connection)
         .unwrap();
