@@ -11,7 +11,7 @@ This DelF aims to be a lighter weight deletion framework, without the need for F
 
 ### REST API
 
-> **:warning: STATUS: Partially Complete**  
+> **:warning: STATUS: Mostly Complete**  
 > - [x] Set up rockets routes
 > - [x] Package crate
 > - [ ] Tests
@@ -46,7 +46,7 @@ The deletion graph is the core data structure backing delf. It contains the rela
 
 ### Storage Connectors
 
-> **:warning: STATUS: Started**  
+> **:warning: STATUS: Partially Complete**  
 > - [x] Create trait for DelfStorage
 > - [ ] Create plugins for databases:
 >   - [x] mysql (using diesel, hope to be able to easily also support postgres and sqlite)
@@ -59,10 +59,10 @@ delf-rs can connect to a variety of databases and can delete objects/edges acros
 
 ### CLI
 
-> **:warning: STATUS: Partially complete**  
-> - [ ] Set up cli methods
+> **:warning: STATUS: Mostly complete**  
+> - [x] Set up cli methods
 >   - [x] Validate
->   - [ ] Run
+>   - [x] Run
 > - [ ] package
 > - [ ] Tests
 > - [ ] Documentation
