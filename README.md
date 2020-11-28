@@ -36,7 +36,7 @@ Inspired by FaceBook's DDL, this project has created a smaller version of the DD
 > **:warning: STATUS: Partially Complete**  
 > - [x] Create data structures / enums for deletion types
 > - [ ] Implement algorithm for traversing the graph
->   - [ ] Implement all edge deletion types (2/3 complete)
+>   - [x] Implement all edge deletion types (3/3 complete)
 >   - [ ] Implement all object deletion types (5/6 complete)
 > - [x] Adjust algorithm to dispatch deletions to database
 > - [ ] Tests
