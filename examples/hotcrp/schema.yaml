@@ -8,17 +8,17 @@ object_type:
       to:
         object_type: Paper
         field: leadContactId
-      deletion: shallow
+      deletion: refcount
     - name: shepherd_contact_id
       to:
         object_type: Paper
         field: shepherdContactId
-      deletion: shallow
+      deletion: refcount
     - name: manager_contact_id
       to:
         object_type: Paper
         field: managerContactId
-      deletion: shallow
+      deletion: refcount
     - name: comment_contact_id
       to:
         object_type: PaperComment

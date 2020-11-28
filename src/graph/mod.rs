@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use petgraph::{
     graph::{EdgeIndex, NodeIndex},
-    Directed, Graph, Outgoing,
+    Directed, Graph, Incoming, Outgoing,
 };
 
 /// The edge of a DelfGraph is a DelfEdge
@@ -137,5 +137,16 @@ impl DelfGraph {
             self.graph.edge_weight(*edge_id).unwrap().validate(self)?;
         }
         return Ok(());
+    }
+
+    pub fn get_inbound_edges(&self, obj: &object::DelfObject) -> Vec<&edge::DelfEdge> {
+        let object_id = self.nodes.get(&obj.name).unwrap();
+        let edges = self.graph.edges_directed(*object_id, Incoming);
+        let mut res = Vec::new();
+        for edge in edges {
+            res.push(edge.weight());
+        }
+
+        return res;
     }
 }

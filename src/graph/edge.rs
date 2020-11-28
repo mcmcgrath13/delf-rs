@@ -3,7 +3,7 @@ use yaml_rust::Yaml;
 use crate::graph::DelfGraph;
 
 /// The deletion types for a DelfEdge
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DeleteType {
     /// Delete the edge and object the edge refers to
     Deep,
@@ -25,7 +25,7 @@ impl DeleteType {
 }
 
 /// Describes the object from the point of view of the edge
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ToType {
     pub object_type: String,
     pub field: String,
@@ -33,7 +33,7 @@ pub struct ToType {
 }
 
 /// The DelfEdge contains the information about the edge as described in the schema
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DelfEdge {
     pub name: String,
     pub to: ToType,
@@ -80,7 +80,24 @@ impl DelfEdge {
                 println!("    deep deletion, following to {}", self.to.object_type);
                 graph._delete_object(&to_obj.name, to_id, Some(self));
             }
-            _ => println!("    shallow deletion, not deleting object"), // TODO: refcount
+            DeleteType::RefCount => {
+                let inbound_edges = graph.get_inbound_edges(to_obj);
+                println!("{:?}", inbound_edges);
+                let mut last_ref = true;
+                for inbound_edge in inbound_edges.iter() {
+                    if *inbound_edge != self {
+                        if s.has_edge(to_obj, to_id, inbound_edge) {
+                            last_ref = false;
+                            break;
+                        }
+                    }
+                }
+
+                if last_ref {
+                    graph._delete_object(&to_obj.name, to_id, Some(self));
+                }
+            }
+            DeleteType::Shallow => println!("    shallow deletion, not deleting object"),
         }
 
         let deleted = s.delete_edge(to_obj, from_id, None, self);
@@ -102,6 +119,11 @@ impl DelfEdge {
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());
 
+        let table = match &self.to.mapping_table {
+            Some(tbl) => tbl,
+            None => &to_obj.name
+        };
+
         match self.deletion {
             DeleteType::Deep => {
                 println!("    deep deletion, following to {}", self.to.object_type);
@@ -110,12 +132,39 @@ impl DelfEdge {
                     from_id,
                     from_id_type,
                     &self.to.field,
-                    &to_obj.name,
+                    table,
                     &to_obj.id_field,
                     &to_obj.id_type,
                 );
                 for to_id in to_ids.iter() {
                     graph._delete_object(&to_obj.name, to_id, Some(self));
+                }
+            }
+            DeleteType::RefCount => {
+                let to_ids = s.get_object_ids(
+                    from_id,
+                    from_id_type,
+                    &self.to.field,
+                    table,
+                    &to_obj.id_field,
+                    &to_obj.id_type,
+                );
+                let inbound_edges = graph.get_inbound_edges(to_obj);
+                for to_id in to_ids.iter() {
+                    let mut last_ref = true;
+                    for inbound_edge in inbound_edges.iter() {
+                        if *inbound_edge != self {
+                            if s.has_edge(to_obj, to_id, inbound_edge) {
+                                println!("has inbound edge {:?}", inbound_edge);
+                                last_ref = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if last_ref {
+                        graph._delete_object(&to_obj.name, to_id, Some(self));
+                    }
                 }
             }
             _ => println!("    shallow deletion, not deleting object"), // TODO: refcount

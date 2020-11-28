@@ -32,6 +32,8 @@ pub trait DelfStorageConnection: Debug {
     fn validate_edge(&self, edge: &DelfEdge) -> Result<(), String>;
 
     fn validate_object(&self, obj: &DelfObject) -> Result<(), String>;
+
+    fn has_edge(&self, obj: &DelfObject, id: &String, edge: &DelfEdge) -> bool;
 }
 
 pub fn get_connection(plugin: &str, url: &str) -> Box<dyn DelfStorageConnection> {

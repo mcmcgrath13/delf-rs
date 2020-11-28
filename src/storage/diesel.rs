@@ -58,11 +58,7 @@ impl DelfStorageConnection for DieselConnection {
             "SELECT {} as id_field FROM {} WHERE {} = ",
             id_field, table, edge_field
         );
-        match from_id_type.to_lowercase().as_str() {
-            "string" => query_str.push_str(format!("'{}'", from_id).as_str()),
-            "integer" => query_str.push_str(format!("{}", from_id).as_str()),
-            _ => panic!("Unrecognized id type"),
-        }
+        self.append_id_to_query(&mut query_str, from_id_type, from_id);
 
         let query = diesel::sql_query(query_str);
 
@@ -75,7 +71,7 @@ impl DelfStorageConnection for DieselConnection {
                     obj_ids.push(o_id.id_field)
                 }
             }
-            "integer" => {
+            "number" => {
                 let res = query.load::<ObjectIdIntResult>(&self.connection).unwrap();
                 for o_id in res {
                     obj_ids.push(o_id.id_field.to_string())
@@ -102,11 +98,7 @@ impl DelfStorageConnection for DieselConnection {
 
     fn delete_object(&self, obj: &DelfObject, id: &String) -> bool {
         let mut query_str = format!("DELETE FROM {} WHERE {} = ", obj.name, obj.id_field,);
-        match obj.id_type.to_lowercase().as_str() {
-            "string" => query_str.push_str(format!("'{}'", id).as_str()),
-            "integer" => query_str.push_str(format!("{}", id).as_str()),
-            _ => panic!("Unrecognized id type"),
-        }
+        self.append_id_to_query(&mut query_str, &obj.id_type, id);
 
         let num_rows = diesel::sql_query(query_str)
             .execute(&self.connection)
@@ -154,6 +146,33 @@ impl DelfStorageConnection for DieselConnection {
             Err(_) => return Err(format!("Object {} doesn't match database schema", obj.name)),
         }
     }
+
+    fn has_edge(&self, obj: &DelfObject, id: &String, edge: &DelfEdge) -> bool {
+        if edge.to.mapping_table.is_some() {
+            return false;
+        }
+        let default_value;
+        match obj.id_type.to_lowercase().as_str() {
+            "string" => default_value = "''",
+            "number" => default_value = "0",
+            _ => panic!("Unrecognized id type"),
+        }
+
+        let mut query_str = format!(
+            "SELECT count(*) as count FROM {} WHERE {} <> {} AND {} = ",
+            obj.name, edge.to.field, default_value, obj.id_field
+        );
+        self.append_id_to_query(&mut query_str, &obj.id_type, id);
+        let res = diesel::sql_query(query_str)
+            .load::<ValidationResult>(&self.connection)
+            .unwrap();
+
+        if res[0].count > 0 {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 impl DieselConnection {
@@ -192,10 +211,18 @@ impl DieselConnection {
     }
 
     fn delete_direct_edge(&self, to: &DelfObject, from_id: &String, edge: &DelfEdge) -> bool {
-        let num_rows = diesel::sql_query(format!(
-            "UPDATE {} SET {} = NULL WHERE {} = {}",
-            to.name, edge.to.field, edge.to.field, from_id
-        ))
+        let default_value;
+        match to.id_type.to_lowercase().as_str() {
+            "string" => default_value = "''",
+            "number" => default_value = "0",
+            _ => panic!("Unrecognized id type"),
+        }
+        let mut query_str = format!(
+            "UPDATE {} SET {} = {} WHERE {} = ",
+            to.name, edge.to.field, default_value, edge.to.field
+        );
+        self.append_id_to_query(&mut query_str, &to.id_type, from_id);
+        let num_rows = diesel::sql_query(query_str)
         .execute(&self.connection)
         .unwrap();
 
@@ -204,6 +231,14 @@ impl DieselConnection {
         } else {
             println!("deleted direct edge!");
             return true;
+        }
+    }
+
+    fn append_id_to_query(&self, query_str: &mut String, id_type: &String, id: &String) {
+        match id_type.to_lowercase().as_str() {
+            "string" => query_str.push_str(format!("'{}'", id).as_str()),
+            "number" => query_str.push_str(format!("{}", id).as_str()),
+            _ => panic!("Unrecognized id type"),
         }
     }
 }

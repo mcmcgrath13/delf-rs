@@ -60,7 +60,7 @@ impl From<&Yaml> for DelfObject {
             id_field: String::from(obj["id"].as_str().unwrap()),
             id_type: match obj["id_type"].as_str() {
                 Some(t) => t.to_string(),
-                None => "integer".to_string(),
+                None => "number".to_string(),
             },
             deletion: DeleteType::from(obj["deletion"].as_str().unwrap(), obj["x"].as_vec()),
         }
