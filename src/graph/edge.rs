@@ -121,7 +121,7 @@ impl DelfEdge {
 
         let table = match &self.to.mapping_table {
             Some(tbl) => tbl,
-            None => &to_obj.name
+            None => &to_obj.name,
         };
 
         match self.deletion {

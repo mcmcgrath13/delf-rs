@@ -50,6 +50,7 @@ pub struct DelfObject {
     pub deletion: DeleteType,
     pub id_field: String,
     pub id_type: String,
+    pub time_field: Option<String>,
 }
 
 impl From<&Yaml> for DelfObject {
@@ -61,6 +62,10 @@ impl From<&Yaml> for DelfObject {
             id_type: match obj["id_type"].as_str() {
                 Some(t) => t.to_string(),
                 None => "number".to_string(),
+            },
+            time_field: match obj["time_field"].as_str() {
+                Some(f) => Some(f.to_string()),
+                None => None,
             },
             deletion: DeleteType::from(obj["deletion"].as_str().unwrap(), obj["x"].as_vec()),
         }
@@ -79,7 +84,7 @@ impl DelfObject {
         let mut to_delete = false;
         match from_edge {
             Some(edge) => match &self.deletion {
-                DeleteType::ByAny | DeleteType::Directly => {
+                DeleteType::ByAny | DeleteType::Directly | DeleteType::ShortTTL => {
                     to_delete = true;
                 }
                 DeleteType::ByXOnly(x) => {
@@ -90,7 +95,7 @@ impl DelfObject {
                 _ => (),
             },
             None => match &self.deletion {
-                DeleteType::DirectlyOnly | DeleteType::Directly => {
+                DeleteType::DirectlyOnly | DeleteType::Directly | DeleteType::ShortTTL => {
                     to_delete = true;
                 }
                 _ => (),
@@ -113,5 +118,21 @@ impl DelfObject {
     ) -> Result<(), String> {
         let s = &*(storages.get(&self.storage).unwrap());
         return s.validate_object(self);
+    }
+
+    pub fn check_short_ttl(
+        &self,
+        storages: &HashMap<String, Box<dyn DelfStorageConnection>>,
+    ) -> Vec<String> {
+        match &self.deletion {
+            DeleteType::ShortTTL => match &self.time_field {
+                Some(field) => {
+                    let s = &*(storages.get(&self.storage).unwrap());
+                    s.get_object_ids_by_time(&self.name, &field, &self.id_field, &self.id_type)
+                }
+                None => panic!("short_ttl objects must have time_field specified"),
+            },
+            _ => Vec::new(),
+        }
     }
 }

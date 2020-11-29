@@ -6,6 +6,8 @@
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::thread;
+use std::time::Duration;
 
 /// The api module contains routes to dispatch deletes on objects and edges
 pub mod api;
@@ -78,6 +80,20 @@ pub fn init_api(schema_path: &String, config_path: &String) -> rocket::Rocket {
     rocket::ignite()
         .mount("/", rocket::routes![api::delete_object, api::delete_edge])
         .manage(yamls)
+}
+
+/// Spawn a thread that checks short time to live objects every 30 seconds to evaluate for deletion
+pub fn check_short_ttl_loop(schema_path: &String, config_path: &String) {
+    let s_path = schema_path.clone();
+    let c_path = config_path.clone();
+    thread::spawn(move || {
+        let graph = read_files(&s_path, &c_path);
+        let sleep_duration = Duration::from_secs(30);
+        loop {
+            thread::sleep(sleep_duration);
+            graph.check_short_ttl();
+        }
+    });
 }
 
 #[cfg(test)]

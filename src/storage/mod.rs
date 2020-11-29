@@ -19,6 +19,14 @@ pub trait DelfStorageConnection: Debug {
         id_type: &String,
     ) -> Vec<String>;
 
+    fn get_object_ids_by_time(
+        &self,
+        table: &String,
+        time_field: &String,
+        id_field: &String,
+        id_type: &String,
+    ) -> Vec<String>;
+
     fn delete_edge(
         &self,
         to: &DelfObject,

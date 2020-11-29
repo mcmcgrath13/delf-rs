@@ -46,5 +46,6 @@ fn validate(schema_path: &String, config_path: &String) {
 }
 
 fn run(schema_path: &String, config_path: &String) {
+    delf::check_short_ttl_loop(schema_path, config_path);
     delf::init_api(schema_path, config_path).launch();
 }

@@ -262,9 +262,10 @@ object_type:
 object_type:
   name: Capability
   storage: mysql
-  deletion: by_any
+  deletion: short_ttl
   id: salt
   id_type: string
+  time_field: timeExpires
   edge_types: []
 
 ---

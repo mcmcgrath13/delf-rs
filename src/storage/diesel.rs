@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use diesel;
 use diesel::sql_types::{BigInt, Integer, Text};
 use diesel::Connection;
@@ -59,6 +61,45 @@ impl DelfStorageConnection for DieselConnection {
             id_field, table, edge_field
         );
         self.append_id_to_query(&mut query_str, from_id_type, from_id);
+
+        let query = diesel::sql_query(query_str);
+
+        let mut obj_ids = Vec::new();
+
+        match id_type.to_lowercase().as_str() {
+            "string" => {
+                let res = query.load::<ObjectIdStrResult>(&self.connection).unwrap();
+                for o_id in res {
+                    obj_ids.push(o_id.id_field)
+                }
+            }
+            "number" => {
+                let res = query.load::<ObjectIdIntResult>(&self.connection).unwrap();
+                for o_id in res {
+                    obj_ids.push(o_id.id_field.to_string())
+                }
+            }
+            _ => panic!("Unrecognized id type"),
+        }
+
+        return obj_ids;
+    }
+
+    fn get_object_ids_by_time(
+        &self,
+        table: &String,
+        time_field: &String,
+        id_field: &String,
+        id_type: &String,
+    ) -> Vec<String> {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let query_str = format!(
+            "SELECT {} as id_field FROM {} WHERE {} < {:?}",
+            id_field, table, time_field, now
+        );
 
         let query = diesel::sql_query(query_str);
 
@@ -223,8 +264,8 @@ impl DieselConnection {
         );
         self.append_id_to_query(&mut query_str, &to.id_type, from_id);
         let num_rows = diesel::sql_query(query_str)
-        .execute(&self.connection)
-        .unwrap();
+            .execute(&self.connection)
+            .unwrap();
 
         if num_rows == 0 {
             return false;

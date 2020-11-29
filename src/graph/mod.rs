@@ -149,4 +149,14 @@ impl DelfGraph {
 
         return res;
     }
+
+    pub fn check_short_ttl(&self) {
+        for (_, node_id) in self.nodes.iter() {
+            let obj = self.graph.node_weight(*node_id).unwrap();
+
+            for obj_id in obj.check_short_ttl(&self.storages).iter() {
+                self.delete_object(&obj.name, obj_id);
+            }
+        }
+    }
 }
