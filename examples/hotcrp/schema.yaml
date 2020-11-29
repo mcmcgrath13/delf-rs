@@ -308,3 +308,19 @@ object_type:
         mapping_table: PaperTag
       deletion: shallow
       inverse: tag_paper_id
+
+---
+object_type:
+  name: ActionLog
+  storage: mysql
+  deletion: not_deleted
+  id: logId
+  edge_types: []
+
+---
+object_type:
+  name: MailLog
+  storage: mysql
+  deletion: not_deleted
+  id: mailId
+  edge_types: []

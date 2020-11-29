@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use petgraph::{
     graph::{EdgeIndex, NodeIndex},
@@ -136,7 +136,54 @@ impl DelfGraph {
         for (_, edge_id) in self.edges.iter() {
             self.graph.edge_weight(*edge_id).unwrap().validate(self)?;
         }
+
+        self.reachability_analysis()?;
+
         return Ok(());
+    }
+
+    fn reachability_analysis(&self) -> Result<(), String> {
+        let mut visited_nodes = HashSet::new();
+        for (_, node_id) in self.nodes.iter() {
+            let obj = self.graph.node_weight(*node_id).unwrap();
+            match obj.deletion {
+                object::DeleteType::ShortTTL
+                | object::DeleteType::Directly
+                | object::DeleteType::DirectlyOnly
+                | object::DeleteType::NotDeleted => {
+                    // this object is a starting point in traversal, start traversal
+                    self.visit(&obj.name, &mut visited_nodes);
+                }
+                _ => (),
+            }
+        }
+
+        if visited_nodes.len() != self.nodes.len() {
+            let node_set: HashSet<String> = self.nodes.keys().cloned().collect();
+            return Err(format!(
+                "Not all objects are deletable: {:?}",
+                node_set.difference(&visited_nodes)
+            ));
+        } else {
+            return Ok(());
+        }
+    }
+
+    fn visit(&self, name: &String, visited_nodes: &mut HashSet<String>) {
+        visited_nodes.insert(name.clone());
+
+        let edges = self.graph.edges_directed(self.nodes[name], Outgoing);
+        for e in edges {
+            let ew = e.weight();
+            match ew.deletion {
+                edge::DeleteType::Deep | edge::DeleteType::RefCount => {
+                    if !visited_nodes.contains(&ew.to.object_type) {
+                        self.visit(&ew.to.object_type, visited_nodes);
+                    }
+                }
+                _ => (),
+            }
+        }
     }
 
     pub fn get_inbound_edges(&self, obj: &object::DelfObject) -> Vec<&edge::DelfEdge> {
