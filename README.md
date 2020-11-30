@@ -1,5 +1,7 @@
 # delf-rs
 
+[![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://mcmcgrath13.github.io/delf-rs/delf/index.html)
+
 A [DelF](https://cs.brown.edu/courses/csci2390/2020/readings/delf.pdf) inspired deletion framework in Rust.
 
 The original DelF is a deletion framework created at FaceBook, which aims to robustly delete all related data from its data stores as defined by the `deletion` definitions added to FaceBook's existing data definition language (DDL). It includes logging, data recovery in case of unintended deletion, asynchronous execution, dynamic analysis, and retries deletions until complete in addition to the features this implementation includes.
