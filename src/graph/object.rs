@@ -11,7 +11,7 @@ pub enum DeleteType {
     /// This object can be deleted by any incoming edge, but not directly
     ByAny,
     /// This object will be deleted after the specified period of time
-    ShortTTL, // TODO: how to do this
+    ShortTTL,
     /// This object can be deleted by any incoming edge, as well as direclty
     Directly,
     /// This object can only be deleted direcly
@@ -55,6 +55,7 @@ pub struct DelfObject {
 
 impl From<&Yaml> for DelfObject {
     fn from(obj: &Yaml) -> DelfObject {
+        /// Construct a DelfObject from yaml.  The keys `name`, `storage`, `id_field`, and `deletion` are required.  `id_type can be specified as `string`, but otherwise defaults to `number`.  The the `deletion` is `short_ttl`, `time_field` is also required.
         DelfObject {
             name: String::from(obj["name"].as_str().unwrap()),
             storage: String::from(obj["storage"].as_str().unwrap()),
@@ -73,7 +74,7 @@ impl From<&Yaml> for DelfObject {
 }
 
 impl DelfObject {
-    /// Delete an instance of this object
+    /// Delete an instance of this object given the id.
     pub fn delete(
         &self,
         id: &String,
@@ -120,6 +121,7 @@ impl DelfObject {
         return s.validate_object(self);
     }
 
+    /// If the delete type is `short_ttl`, return ids of instances that are ready for deletion based on the elapsed time.
     pub fn check_short_ttl(
         &self,
         storages: &HashMap<String, Box<dyn DelfStorageConnection>>,

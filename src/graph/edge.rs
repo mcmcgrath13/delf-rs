@@ -2,7 +2,7 @@ use yaml_rust::Yaml;
 
 use crate::graph::DelfGraph;
 
-/// The deletion types for a DelfEdge
+/// The deletion types for a DelfEdge.  The type describes how the object the edge points to should be deleted by the DelfGraph.
 #[derive(Clone, Debug, PartialEq)]
 pub enum DeleteType {
     /// Delete the edge and object the edge refers to
@@ -35,13 +35,19 @@ pub struct ToType {
 /// The DelfEdge contains the information about the edge as described in the schema
 #[derive(Clone, Debug, PartialEq)]
 pub struct DelfEdge {
+    /// The unique name identifying the edge, used by the API to enable deletion of an edge directly.
     pub name: String,
+    /// Describes the object the edge points to.
     pub to: ToType,
+    /// How should the deletion of this edge affect the object it points to.
     pub deletion: DeleteType,
+    /// If this edge is deleted (typically, shallowly), is there an inverse edge that also needs to be deleted.
     pub inverse: Option<String>,
 }
 
 impl From<&Yaml> for DelfEdge {
+
+    /// Create a DelfEdge from a yaml struct.  The keys `name`, `to` (which iteslf contains a yaml object with the fields `object_type`, `field`, and optionally `mapping_table`), and `deletion` are required.  An `inverse` key may also be specified.
     fn from(obj: &Yaml) -> DelfEdge {
         DelfEdge {
             name: String::from(obj["name"].as_str().unwrap()),
@@ -56,6 +62,7 @@ impl From<&Yaml> for DelfEdge {
 }
 
 impl From<&Yaml> for ToType {
+    /// Create a ToType from a yaml struct. The expected keys are `object_type`, `field`, and optionally `mapping_table`.
     fn from(obj: &Yaml) -> ToType {
         ToType {
             object_type: String::from(obj["object_type"].as_str().unwrap()),

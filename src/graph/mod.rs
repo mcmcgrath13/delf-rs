@@ -124,7 +124,7 @@ impl DelfGraph {
         }
     }
 
-    /// Validate that the objects and edges described in the schema exist in the corresponding storage as expected
+    /// Validate that the objects and edges described in the schema exist in the corresponding storage as expected.  Additionally, ensure that all objects in the graph are reachable by traversal via `deep` or `refcount` edges starting at an object with deletion type of `directly`, `directly_only`, `short_ttl`, or `not_deleted`.  This ensures that all objects are deletable and accounted for.
     pub fn validate(&self) -> Result<(), String> {
         for (_, node_id) in self.nodes.iter() {
             self.graph
@@ -142,6 +142,7 @@ impl DelfGraph {
         return Ok(());
     }
 
+    // Starting from a directly deletable (or excepted) node, ensure all ndoes are reached.
     fn reachability_analysis(&self) -> Result<(), String> {
         let mut visited_nodes = HashSet::new();
         for (_, node_id) in self.nodes.iter() {
@@ -152,7 +153,7 @@ impl DelfGraph {
                 | object::DeleteType::DirectlyOnly
                 | object::DeleteType::NotDeleted => {
                     // this object is a starting point in traversal, start traversal
-                    self.visit(&obj.name, &mut visited_nodes);
+                    self.visit_node(&obj.name, &mut visited_nodes);
                 }
                 _ => (),
             }
@@ -169,7 +170,8 @@ impl DelfGraph {
         }
     }
 
-    fn visit(&self, name: &String, visited_nodes: &mut HashSet<String>) {
+    // Recursively visit all un-visited nodes that are connected via depp or refcounte edges from the starting node with the passed in name
+    fn visit_node(&self, name: &String, visited_nodes: &mut HashSet<String>) {
         visited_nodes.insert(name.clone());
 
         let edges = self.graph.edges_directed(self.nodes[name], Outgoing);
@@ -178,7 +180,7 @@ impl DelfGraph {
             match ew.deletion {
                 edge::DeleteType::Deep | edge::DeleteType::RefCount => {
                     if !visited_nodes.contains(&ew.to.object_type) {
-                        self.visit(&ew.to.object_type, visited_nodes);
+                        self.visit_node(&ew.to.object_type, visited_nodes);
                     }
                 }
                 _ => (),
@@ -186,7 +188,8 @@ impl DelfGraph {
         }
     }
 
-    pub fn get_inbound_edges(&self, obj: &object::DelfObject) -> Vec<&edge::DelfEdge> {
+    // find all the inbound edges for a given object
+    fn get_inbound_edges(&self, obj: &object::DelfObject) -> Vec<&edge::DelfEdge> {
         let object_id = self.nodes.get(&obj.name).unwrap();
         let edges = self.graph.edges_directed(*object_id, Incoming);
         let mut res = Vec::new();
@@ -197,6 +200,7 @@ impl DelfGraph {
         return res;
     }
 
+    /// Check all objects in the DelfGraph with the deletion type of `short_ttl` if there are instances of the object which are past their expiration time.  If so, delete the objects.
     pub fn check_short_ttl(&self) {
         for (_, node_id) in self.nodes.iter() {
             let obj = self.graph.node_weight(*node_id).unwrap();
