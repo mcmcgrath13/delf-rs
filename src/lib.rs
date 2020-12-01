@@ -96,7 +96,7 @@
 //! delf -s path/to/schema.yaml -c path/to/config.yaml validate
 //! ```
 //!
-//! The executable will either successfully complete, or panic at the first issue it finds.
+//! The executable will print a report of its findings.
 //!
 //! ### Run
 //!
@@ -143,7 +143,8 @@ pub mod storage;
 use yaml_rust::{Yaml, YamlLoader};
 extern crate rocket;
 
-pub(crate) struct DelfYamls {
+/// Convenience structure for passing around parsed yaml files
+pub struct DelfYamls {
     pub config: Vec<Yaml>,
     pub schema: Vec<Yaml>,
 }

@@ -41,8 +41,7 @@ fn main() {
 
 fn validate(schema_path: &String, config_path: &String) {
     let graph = delf::read_files(schema_path, config_path);
-    graph.validate().unwrap();
-    println!("Validation successful!")
+    graph.validate();
 }
 
 fn run(schema_path: &String, config_path: &String) {

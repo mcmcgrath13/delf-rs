@@ -54,8 +54,8 @@ pub struct DelfObject {
 }
 
 impl From<&Yaml> for DelfObject {
+    /// Construct a DelfObject from yaml.  The keys `name`, `storage`, `id_field`, and `deletion` are required.  `id_type can be specified as `string`, but otherwise defaults to `number`.  The the `deletion` is `short_ttl`, `time_field` is also required.
     fn from(obj: &Yaml) -> DelfObject {
-        /// Construct a DelfObject from yaml.  The keys `name`, `storage`, `id_field`, and `deletion` are required.  `id_type can be specified as `string`, but otherwise defaults to `number`.  The the `deletion` is `short_ttl`, `time_field` is also required.
         DelfObject {
             name: String::from(obj["name"].as_str().unwrap()),
             storage: String::from(obj["storage"].as_str().unwrap()),

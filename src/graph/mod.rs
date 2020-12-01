@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use ansi_term::Colour::{Red, Green, Cyan};
 use petgraph::{
     graph::{EdgeIndex, NodeIndex},
     Directed, Graph, Incoming, Outgoing,
@@ -125,21 +126,68 @@ impl DelfGraph {
     }
 
     /// Validate that the objects and edges described in the schema exist in the corresponding storage as expected.  Additionally, ensure that all objects in the graph are reachable by traversal via `deep` or `refcount` edges starting at an object with deletion type of `directly`, `directly_only`, `short_ttl`, or `not_deleted`.  This ensures that all objects are deletable and accounted for.
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) {
+        println!("\u{1f50d} {}", Cyan.bold().paint("Validating DelF graph..."));
+
+        let mut errs = Vec::new();
+        let mut passed = true;
         for (_, node_id) in self.nodes.iter() {
-            self.graph
+            match self.graph
                 .node_weight(*node_id)
                 .unwrap()
-                .validate(&self.storages)?;
+                .validate(&self.storages) {
+                    Err(e) => errs.push(e),
+                    _ => ()
+                }
+        }
+
+        if errs.len() > 0 {
+            passed = false;
+            println!("\u{274c} {}", Red.paint("Not all objects found in storage"));
+            for err in errs.drain(..) {
+                println!("  {}", err);
+            }
+        } else {
+            println!("\u{2705} {}", Green.paint("Objects exist in storage"));
         }
 
         for (_, edge_id) in self.edges.iter() {
-            self.graph.edge_weight(*edge_id).unwrap().validate(self)?;
+            match self.graph.edge_weight(*edge_id).unwrap().validate(self) {
+                Err(e) => errs.push(e),
+                _ => ()
+            }
         }
 
-        self.reachability_analysis()?;
+        if errs.len() > 0 {
+            passed = false;
+            println!("\u{274c} {}", Red.paint("Not all edges found in storage"));
+            for err in errs.drain(..) {
+                println!("  {}", err);
+            }
+        } else {
+            println!("\u{2705} {}", Green.paint("Edges exist in storage"));
+        }
 
-        return Ok(());
+        match self.reachability_analysis() {
+            Err(e) => errs.push(e),
+            _ => ()
+        }
+
+        if errs.len() > 0 {
+            passed = false;
+            println!("\u{274c} {}", Red.paint("Not all objects deletable"));
+            for err in errs.drain(..) {
+                println!("  {}", err);
+            }
+        } else {
+            println!("\u{2705} {}", Green.paint("All objects deletable"));
+        }
+
+        if passed {
+            println!("\u{1F680} {} \u{1F680}", Green.bold().paint("Validation successful!"));
+        } else {
+            println!("\u{26a0} {} \u{26a0}", Red.bold().paint("Validation errors found"));
+        }
     }
 
     // Starting from a directly deletable (or excepted) node, ensure all ndoes are reached.
