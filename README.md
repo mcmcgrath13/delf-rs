@@ -4,9 +4,9 @@
 
 A [DelF](https://cs.brown.edu/courses/csci2390/2020/readings/delf.pdf) inspired deletion framework in Rust.
 
-The original DelF is a deletion framework created at FaceBook, which aims to robustly delete all related data from its data stores as defined by the `deletion` definitions added to FaceBook's existing data definition language (DDL). It includes logging, data recovery in case of unintended deletion, asynchronous execution, dynamic analysis, and retries deletions until complete in addition to the features this implementation includes.
+The original DelF is a deletion framework created at Facebook, which aims to robustly delete all related data from its data stores as defined by the `deletion` definitions added to Facebook's existing data definition language (DDL). It includes logging, data recovery in case of unintended deletion, asynchronous execution, dynamic analysis, and retries deletions until complete in addition to the features this implementation includes.
 
-This DelF aims to be a lighter weight deletion framework, without the need for FaceBook's infrastructure stack. The following features are included in the scope of this work.
+delf-rs aims to be a lighter weight deletion framework, without the need for Facebook's infrastructure stack. The following features are included in the scope of this work.
 
 
 ![DelF Architecture Diagram](docs/delf.png)
@@ -25,13 +25,13 @@ The primary interaction point of delf-rs is a rest API with `DELETE` routes that
 
 > **:warning: STATUS: Mostly Complete**  
 > - [x] Read in YAML to Graph
-> - [ ] Error handling for invalid ddl yaml (currently just panics)
+> - [x] Error handling for invalid ddl yaml
 > - [x] Validate schema against DB
 > - [x] Static Analysis (stretch goal)
 > - [ ] Tests
 > - [x] Documentation
 
-Inspired by FaceBook's DDL, this project has created a smaller version of the DDL which includes on the fields needed for deletions to be correctly done. It consists of `object_types`, which have a list of `edge_types` as one of the attributes of the object. This schema is a yaml file, which is loaded into the delf-rs runtime to create the graph. It can also be validated against the configured databases to ensure all of the objects/edges exist as described. Static analysis can also be run on the schema to find common errors.
+Inspired by Facebook's DDL, this project has created a smaller version of the DDL which includes on the fields needed for deletions to be correctly done. It consists of `object_types`, which have a list of `edge_types` as one of the attributes of the object. This schema is a yaml file, which is loaded into the delf-rs runtime to create the graph. It can also be validated against the configured databases to ensure all of the objects/edges exist as described. Static analysis can also be run on the schema to find common errors.
 
 ### Deletion Graph
 
@@ -99,8 +99,39 @@ docker-compose up -d
 
 ### Delf
 
-To run the rust code on the HotCRP schema, run the command below.
+Build the executable:
 
 ```
-cargo run --example hotcrp
+cargo build
+```
+
+Validate the hotcrp schema (error version and working version)
+
+```
+./target/debug/delf -s examples/hotcrp/schema_errors.yaml -c examples/hotcrp/config.yaml validate
+```
+
+```
+./target/debug/delf -s examples/hotcrp/schema.yaml -c examples/hotcrp/config.yaml validate
+```
+
+Run the API
+
+```
+./target/debug/delf -s examples/hotcrp/schema.yaml -c examples/hotcrp/config.yaml run
+```
+
+Sample deletion requests:
+
+After deleting these three ContactInfo objects, the Paper with paperID 10 will be deleted.
+```
+curl -X "DELETE" http://localhost:8000/object/ContactInfo/11
+curl -X "DELETE" http://localhost:8000/object/ContactInfo/12
+curl -X "DELETE" http://localhost:8000/object/ContactInfo/13
+
+```
+
+Delete the paper conflict of ContactInfo with ID 4 and Paper with ID 1
+```
+curl -X "DELETE" http://localhost:8000/edge/comment_paper_id/4/1
 ```

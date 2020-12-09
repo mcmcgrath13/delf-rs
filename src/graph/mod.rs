@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::process::exit;
 
 use ansi_term::Colour::{Red, Green, Cyan};
 use petgraph::{
@@ -17,8 +18,8 @@ use crate::DelfYamls;
 /// The DelfGraph is the core structure for delf's functionality.  It contains the algorithm to traverse the graph, as well as metadata to perform the deletions.
 #[derive(Debug)]
 pub struct DelfGraph {
-    nodes: HashMap<String, NodeIndex>,
-    edges: HashMap<String, EdgeIndex>,
+    pub(crate) nodes: HashMap<String, NodeIndex>,
+    pub(crate) edges: HashMap<String, EdgeIndex>,
     graph: Graph<object::DelfObject, edge::DelfEdge, Directed>,
     storages: HashMap<String, Box<dyn DelfStorageConnection>>,
 }
@@ -51,6 +52,10 @@ impl DelfGraph {
 
         // add all the edges to the graph
         for (from, e) in edges_to_insert.iter_mut() {
+            if !nodes.contains_key(&e.to.object_type) {
+                eprintln!("Error creating edge {:#?}: No object with name {:#?}", e.name, e.to.object_type);
+                exit(1);
+            }
             let edge_id = graph.add_edge(nodes[from], nodes[&e.to.object_type], e.clone());
             edges.insert(String::from(&e.name), edge_id);
         }

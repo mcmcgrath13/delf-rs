@@ -148,7 +148,6 @@ impl DelfStorageConnection for DieselConnection {
         if num_rows == 0 {
             return false;
         } else {
-            println!("deleted object!");
             return true;
         }
     }
@@ -246,7 +245,6 @@ impl DieselConnection {
         if num_rows == 0 {
             return false;
         } else {
-            println!("deleted indirect edge {}!", table);
             return true;
         }
     }
@@ -270,7 +268,6 @@ impl DieselConnection {
         if num_rows == 0 {
             return false;
         } else {
-            println!("deleted direct edge!");
             return true;
         }
     }

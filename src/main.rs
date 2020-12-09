@@ -23,10 +23,6 @@ enum SubCommand {
 fn main() {
     let opts: Opts = Opts::parse();
 
-    // Gets a value for config if supplied by user, or defaults to "default.conf"
-    println!("Value for config: {}", opts.config);
-    println!("Value for schema: {}", opts.schema);
-
     match opts.subcmd {
         SubCommand::Validate => {
             println!("Validating schema...");

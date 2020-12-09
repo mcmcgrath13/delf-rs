@@ -193,7 +193,7 @@ fn read_file(file_name: &String) -> String {
     let mut s = String::new();
     match file.read_to_string(&mut s) {
         Err(why) => panic!("couldn't read {}: {}", file_name, why),
-        Ok(_) => print!("{} contains:\n{}", file_name, s),
+        Ok(_) => (),
     }
 
     return s;
@@ -209,6 +209,7 @@ pub fn init_api(schema_path: &String, config_path: &String) -> rocket::Rocket {
 
 /// Spawn a thread that checks short time to live objects every 30 seconds to evaluate for deletion
 pub fn check_short_ttl_loop(schema_path: &String, config_path: &String) {
+    println!("Starting thread checking for short time to live objects ... ");
     let s_path = schema_path.clone();
     let c_path = config_path.clone();
     thread::spawn(move || {

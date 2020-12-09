@@ -81,7 +81,6 @@ impl DelfObject {
         from_edge: Option<&DelfEdge>,
         storages: &HashMap<String, Box<dyn DelfStorageConnection>>,
     ) -> bool {
-        println!("=======\nthinking about deleting {:#?}", self.name);
         let mut to_delete = false;
         match from_edge {
             Some(edge) => match &self.deletion {
@@ -104,9 +103,12 @@ impl DelfObject {
         }
 
         if to_delete {
-            println!("    actually deleting!");
             let s = &*(storages.get(&self.storage).unwrap());
-            return s.delete_object(self, id);
+            let deleted = s.delete_object(self, id);
+            if deleted {
+                println!("Object deleted: {:#?}", self.name);
+                return true;
+            }
         }
 
         return false;

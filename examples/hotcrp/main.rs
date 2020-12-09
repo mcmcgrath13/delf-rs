@@ -6,7 +6,7 @@ fn main() {
 
     let graph = delf::read_yamls(&test_schema, &test_config);
 
-    graph.validate().unwrap();
+    graph.validate();
 
     let id = "48".to_string();
 

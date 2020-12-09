@@ -78,18 +78,15 @@ impl From<&Yaml> for ToType {
 impl DelfEdge {
     /// Delete a specific edge between two object instances
     pub fn delete_one(&self, from_id: &String, to_id: &String, graph: &DelfGraph) {
-        println!("=======\ndeleting {:#?}", self.name);
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());
 
         match self.deletion {
             DeleteType::Deep => {
-                println!("    deep deletion, following to {}", self.to.object_type);
                 graph._delete_object(&to_obj.name, to_id, Some(self));
             }
             DeleteType::RefCount => {
                 let inbound_edges = graph.get_inbound_edges(to_obj);
-                println!("{:?}", inbound_edges);
                 let mut last_ref = true;
                 for inbound_edge in inbound_edges.iter() {
                     if *inbound_edge != self {
@@ -104,15 +101,15 @@ impl DelfEdge {
                     graph._delete_object(&to_obj.name, to_id, Some(self));
                 }
             }
-            DeleteType::Shallow => println!("    shallow deletion, not deleting object"),
+            DeleteType::Shallow => (),
         }
 
         let deleted = s.delete_edge(to_obj, from_id, None, self);
 
         if deleted {
+            println!("Edge deleted: {:#?}", self.name);
             match &self.inverse {
                 Some(inverse) => {
-                    println!("    need to delete a reverse edge too!");
                     graph.delete_edge(&inverse, to_id, from_id);
                 }
                 None => (),
@@ -122,7 +119,6 @@ impl DelfEdge {
 
     /// Delete all edges of a given type from the instance of the object
     pub fn delete_all(&self, from_id: &String, from_id_type: &String, graph: &DelfGraph) {
-        println!("=======\ndeleting {:#?}", self.name);
         let to_obj = graph.get_object(&self.to.object_type);
         let s = &*(graph.storages.get(&to_obj.storage).unwrap());
 
@@ -133,7 +129,6 @@ impl DelfEdge {
 
         match self.deletion {
             DeleteType::Deep => {
-                println!("    deep deletion, following to {}", self.to.object_type);
                 // collect object ids to delete
                 let to_ids = s.get_object_ids(
                     from_id,
@@ -162,7 +157,6 @@ impl DelfEdge {
                     for inbound_edge in inbound_edges.iter() {
                         if *inbound_edge != self {
                             if s.has_edge(to_obj, to_id, inbound_edge) {
-                                println!("has inbound edge {:?}", inbound_edge);
                                 last_ref = false;
                                 break;
                             }
@@ -174,7 +168,7 @@ impl DelfEdge {
                     }
                 }
             }
-            _ => println!("    shallow deletion, not deleting object"), // TODO: refcount
+            _ => (),
         }
 
         match &self.inverse {
@@ -188,7 +182,6 @@ impl DelfEdge {
                         table = &to_obj.name;
                     }
                 }
-                println!("    need to delete a reverse edge too!");
                 // collect object ids to delete
                 let to_ids = s.get_object_ids(
                     from_id,
@@ -205,7 +198,9 @@ impl DelfEdge {
             None => (),
         }
 
-        s.delete_edge(to_obj, from_id, None, self);
+        if s.delete_edge(to_obj, from_id, None, self) {
+            println!("Edges Deleted: {:#?}", self.name);
+        }
     }
 
     /// Validate the edge exists in the storage as described in the schema
