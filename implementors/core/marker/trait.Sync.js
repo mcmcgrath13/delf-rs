@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["delf"] = [{"text":"impl Sync for DeleteType","synthetic":true,"types":[]},{"text":"impl Sync for ToType","synthetic":true,"types":[]},{"text":"impl Sync for DelfEdge","synthetic":true,"types":[]},{"text":"impl Sync for DeleteType","synthetic":true,"types":[]},{"text":"impl Sync for DelfObject","synthetic":true,"types":[]},{"text":"impl !Sync for DelfGraph","synthetic":true,"types":[]},{"text":"impl Sync for DelfYamls","synthetic":true,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

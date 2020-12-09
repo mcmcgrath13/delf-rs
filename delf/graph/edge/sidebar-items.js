@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DeleteType","The deletion types for a DelfEdge.  The type describes how the object the edge points to should be deleted by the DelfGraph."]],"struct":[["DelfEdge","The DelfEdge contains the information about the edge as described in the schema"],["ToType","Describes the object from the point of view of the edge"]]});

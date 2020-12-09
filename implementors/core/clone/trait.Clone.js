@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["delf"] = [{"text":"impl Clone for DeleteType","synthetic":false,"types":[]},{"text":"impl Clone for ToType","synthetic":false,"types":[]},{"text":"impl Clone for DelfEdge","synthetic":false,"types":[]},{"text":"impl Clone for DeleteType","synthetic":false,"types":[]},{"text":"impl Clone for DelfObject","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

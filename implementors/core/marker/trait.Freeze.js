@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["delf"] = [{"text":"impl Freeze for DeleteType","synthetic":true,"types":[]},{"text":"impl Freeze for ToType","synthetic":true,"types":[]},{"text":"impl Freeze for DelfEdge","synthetic":true,"types":[]},{"text":"impl Freeze for DeleteType","synthetic":true,"types":[]},{"text":"impl Freeze for DelfObject","synthetic":true,"types":[]},{"text":"impl Freeze for DelfGraph","synthetic":true,"types":[]},{"text":"impl Freeze for DelfYamls","synthetic":true,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

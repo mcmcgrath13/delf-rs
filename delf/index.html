@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `delf` crate."><meta name="keywords" content="rust, rustlang, rust-lang, delf"><title>delf - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../delf/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate delf</p><div class="block version"><p>Version 0.1.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all delf's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "delf", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/delf/lib.rs.html#1-231" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">delf</a></span></h1><div class="docblock"><h1 id="delf" class="section-header"><a href="#delf">DeLF</a></h1>
+<p>A <a href="https://cs.brown.edu/courses/csci2390/2020/readings/delf.pdf">DelF</a> inspired deletion framework in Rust.</p>
+<p>The goal of DelF is to ensure that when an item is deleted (such as a user in a social network), all of their related data is also deleted (photos, friendships, posts, etc.).  DelF achieves this by defining the backing storage as a graph then using methods on that graph to delete the object/edge.  DelF will then traverse the graph ensuring deletion of all related objects/edges.</p>
+<h2 id="delf-data-definition-language-ddl" class="section-header"><a href="#delf-data-definition-language-ddl">DelF Data Definition Language (DDL)</a></h2>
+<p>The DelF DDL enables the functionality within the delf crate.  A DelF schema is a YAML file containing definitions of objects and their outbound edges.  The DDL is as follows:</p>
+<pre><code class="language-yaml">--- # the triple line indicates a new document
+# root key of the document
+object_type:
+
+  # The name of the object, this is a unique identifier for this object, such as a table name
+  # in a relational database
+  name: MyObjectName
+
+  # The storage is the name of a storage in the config file
+  storage: my_storage
+
+  # The deletion type of the object - see delf::graph::object::DeleteType for details
+  deletion: by_any | by_x_only | short_ttl | directly | directly_only | not_deleted
+
+  # The field or attribute of the object that holds a unique identifier for each instance
+  id: 123
+
+  # If the deletion specified is `by_x_only`, provide an array of inbound edge names that can
+  # delete this object
+  x:
+    - my_edge
+    - my_other_edge
+
+  # If the deletion specified is `short_ttl`, specify the field or attribute holding the time
+  # an instance of the object should be deleted
+  time_field: my_delete_time
+
+  # Definitions of outbound edges from this object to other objects.  If no edges exists, can
+  # pass an empty array (`[]`)
+  edge_types:
+
+    # A unique name for the edge that can be referenced from other definitions and to directly
+    # delete an edge directly
+    - name: edge_to_somewhere
+
+      # The deletion type of the edge - see delf::graph::edge::DeleteType for details
+      deletion: shallow | deep | refcount
+
+      # An inverse edge may be specified, typically with a deletion type of `shallow`, to
+      # delete an edge in the opposite direction of this edge when this edge is deleted
+      inverse: edge_to_here
+
+      # Fields describing the object this edge points to (from the edge's point of view)
+      to:
+
+        # The name of the object_type this edge points to
+        object_type: MyOtherObject
+
+        # The name of the field/attribute the id of this object references on the to object
+        field: my_object_name_id
+
+        # Optionally, if there's an intermediate mapping table between the two objects, (e.g.
+        # user -&gt; user_photos -&gt; photos ) - more common in relational databases
+        mapping_table: this_2_other
+</code></pre>
+<h2 id="configuration" class="section-header"><a href="#configuration">Configuration</a></h2>
+<p>A configuration YAML file is also required to use delf.  It contains information on the storage infrastructure delf will be acting on (such as how to connect to a database).  The format is as follows:</p>
+<pre><code class="language-yaml"># A list of the storage infrastruture delf is acting on
+storages:
+
+  # The name of the storage as referenced in the DDL
+  - name: my_storage
+
+    # The name of the plugin (see delf::storage::DelfStorageConnection) this storage uses
+    plugin: diesel (other plugins may be implemented in the future)
+
+    # A connection string for the storage
+    url: mysql://username:password@localhost:port/database_name
+</code></pre>
+<h2 id="command-line-interface-cli" class="section-header"><a href="#command-line-interface-cli">Command Line Interface (CLI)</a></h2>
+<p>The DelF CLI provides two commands: <code>validate</code> and <code>run</code>.</p>
+<h3 id="validate" class="section-header"><a href="#validate">Validate</a></h3>
+<p>The <code>validate</code> command checks that all of the objects defined in the schema exist as described in the storage and also that all objects in the delf graph are reachable by traversing the graph starting from a directly deletable object then following edges that can delete the connecting object.  This ensures that all objects are deletable (or excepted from deletion by using the <code>not_deleted</code> type).</p>
+<h4 id="example" class="section-header"><a href="#example">Example</a></h4>
+<pre><code class="language-yaml">delf -s path/to/schema.yaml -c path/to/config.yaml validate
+</code></pre>
+<p>The executable will print a report of its findings.</p>
+<h3 id="run" class="section-header"><a href="#run">Run</a></h3>
+<p>The <code>run</code> command starts the api running locally and starts a thread which checks <code>short_ttl</code> deleted objects for deletable instances every 30 seconds.</p>
+<h4 id="example-1" class="section-header"><a href="#example-1">Example</a></h4>
+<pre><code class="language-yaml">delf -s path/to/schema.yaml -c path/to/config.yaml run
+</code></pre>
+<p>The executable will run until terminated.</p>
+</div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="api/index.html" title="delf::api mod">api</a></td><td class="docblock-short"><p>The api module contains routes to dispatch deletes on objects and edges.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="graph/index.html" title="delf::graph mod">graph</a></td><td class="docblock-short"><p>The graph module contains the core structures to run the deletion algorithms.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="storage/index.html" title="delf::storage mod">storage</a></td><td class="docblock-short"><p>The storage module contains plugins for storage-specific (e.g. mysql) deletion implementations.</p>
+</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.DelfYamls.html" title="delf::DelfYamls struct">DelfYamls</a></td><td class="docblock-short"><p>Convenience structure for passing around parsed yaml files</p>
+</td></tr></table><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<table><tr class="module-item"><td><a class="fn" href="fn.check_short_ttl_loop.html" title="delf::check_short_ttl_loop fn">check_short_ttl_loop</a></td><td class="docblock-short"><p>Spawn a thread that checks short time to live objects every 30 seconds to evaluate for deletion</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.init_api.html" title="delf::init_api fn">init_api</a></td><td class="docblock-short"><p>Initialize the rocket api and return the struct.  Run the <code>launch</code> method on the returned value to start the api.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.read_files.html" title="delf::read_files fn">read_files</a></td><td class="docblock-short"><p>Read in the schema and config yaml files to construct the delf graph.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.read_yamls.html" title="delf::read_yamls fn">read_yamls</a></td><td class="docblock-short"><p>Read in the schema and config yaml strings to construct the delf graph.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "delf";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["edge","The edge of a DelfGraph is a DelfEdge"],["object","The node of a DelfGraph is a DelfObject"]],"struct":[["DelfGraph","The DelfGraph is the core structure for delf's functionality.  It contains the algorithm to traverse the graph, as well as metadata to perform the deletions."]]});

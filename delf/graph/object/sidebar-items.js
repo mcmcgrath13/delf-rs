@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DeleteType","The deletion types for a DelfObject"]],"struct":[["DelfObject","The DelfObject contains the information about the object as described in the schema"]]});

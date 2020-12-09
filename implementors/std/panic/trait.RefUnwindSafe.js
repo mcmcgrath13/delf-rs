@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["delf"] = [{"text":"impl RefUnwindSafe for DeleteType","synthetic":true,"types":[]},{"text":"impl RefUnwindSafe for ToType","synthetic":true,"types":[]},{"text":"impl RefUnwindSafe for DelfEdge","synthetic":true,"types":[]},{"text":"impl RefUnwindSafe for DeleteType","synthetic":true,"types":[]},{"text":"impl RefUnwindSafe for DelfObject","synthetic":true,"types":[]},{"text":"impl !RefUnwindSafe for DelfGraph","synthetic":true,"types":[]},{"text":"impl RefUnwindSafe for DelfYamls","synthetic":true,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

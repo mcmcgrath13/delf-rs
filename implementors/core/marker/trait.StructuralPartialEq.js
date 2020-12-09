@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["delf"] = [{"text":"impl StructuralPartialEq for DeleteType","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for ToType","synthetic":false,"types":[]},{"text":"impl StructuralPartialEq for DelfEdge","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

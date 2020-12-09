@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_connection","Given the name of the plugin (trait implementor) and the connection string, return an instance of that DelfStorageConnection."]],"trait":[["DelfStorageConnection","Trait defining the api for a DelF storage connection."]]});
