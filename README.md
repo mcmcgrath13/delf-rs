@@ -133,5 +133,5 @@ curl -X "DELETE" http://localhost:8000/object/ContactInfo/13
 
 Delete the paper conflict of ContactInfo with ID 4 and Paper with ID 1
 ```
-curl -X "DELETE" http://localhost:8000/edge/comment_paper_id/4/1
+curl -X "DELETE" http://localhost:8000/edge/conflict_contact_id/4/1
 ```
